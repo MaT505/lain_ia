@@ -7,17 +7,17 @@ import json
 import os
 import glob
 import base64
+import io
 from pypdf import PdfReader
+from gtts import gTTS  # Biblioteca gratuita do Google
 
 app = FastAPI()
 
 # -------------------------
-# CONFIG
+# CONFIGURAÇÕES
 # -------------------------
-
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
-OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 
 MEMORY_FILE = "/tmp/memoria.json"
 MAX_MEMORY = 10
@@ -29,7 +29,6 @@ class Message(BaseModel):
 # -------------------------
 # ROTAS
 # -------------------------
-
 @app.get("/")
 def root():
     return FileResponse('static/index.html')
@@ -37,7 +36,6 @@ def root():
 # -------------------------
 # MEMÓRIA
 # -------------------------
-
 def carregar_memoria():
     if os.path.exists(MEMORY_FILE):
         try:
@@ -57,7 +55,6 @@ def salvar_memoria(memoria):
 # -------------------------
 # BIBLIOTECA PDF
 # -------------------------
-
 def extrair_texto_biblioteca():
     textos = []
     arquivos = glob.glob("biblioteca/livros_pdf/*.pdf")
@@ -75,7 +72,6 @@ def extrair_texto_biblioteca():
 # -------------------------
 # BUSCA WEB
 # -------------------------
-
 def buscar_web(query):
     resultados = []
     try:
@@ -86,45 +82,32 @@ def buscar_web(query):
                 if any(x in link.lower() for x in ["brainly", "wikipedia", "significados"]): continue
                 resultados.append(f"Título: {r.get('title')}\nResumo: {r.get('body')[:200]}\n")
     except:
-        return "Sem conexão com a rede externa."
+        return "Conexão instável com a rede externa."
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# TTS OPENAI (LOGS ADICIONADOS)
+# GERAÇÃO DE ÁUDIO GRÁTIS (gTTS)
 # -------------------------
-
 def gerar_audio(texto):
-    if not OPENAI_KEY: 
-        print("SISTEMA: OPENAI_API_KEY não encontrada nas variáveis de ambiente.")
-        return None
-    
-    print(f"SISTEMA: Tentando gerar áudio para: {texto[:30]}...")
-    
     try:
-        response = requests.post(
-            "https://api.openai.com/v1/audio/speech",
-            headers={
-                "Authorization": f"Bearer {OPENAI_KEY}", 
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "tts-1", 
-                "voice": "nova", # Voz 'nova' soa mais feminina e calma para a Lain
-                "input": texto
-            },
-            timeout=30
-        )
+        print(f"SISTEMA: Gerando áudio via gTTS para: {texto[:30]}...")
         
-        if response.status_code == 200:
-            print("SISTEMA: Áudio gerado com sucesso.")
-            return base64.b64encode(response.content).decode("utf-8")
-        else:
-            # Isso vai aparecer no log do Render
-            print(f"ERRO OPENAI: Status {response.status_code} - Resposta: {response.text}")
-            return None
-            
+        # Cria o objeto gTTS (Voz do Google em Português)
+        tts = gTTS(text=texto, lang='pt-br', slow=False)
+        
+        # Salva o áudio em um buffer de memória (BytesIO)
+        mp3_fp = io.BytesIO()
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+        
+        # Converte os bytes do áudio para Base64 para enviar ao navegador
+        audio_b64 = base64.b64encode(mp3_fp.read()).decode("utf-8")
+        
+        print("SISTEMA: Áudio gTTS gerado com sucesso.")
+        return audio_b64
+        
     except Exception as e:
-        print(f"ERRO EXCEPTION AUDIO: {str(e)}")
+        print(f"ERRO gTTS: {str(e)}")
         return None
         
 # -------------------------
@@ -175,8 +158,7 @@ Usuário: "Me ajude a escrever código."
 Lain: "Sintaxe é apenas estrutura. Certifique-se de que suas fundações estejam sobre a rocha, não sobre a areia."
 {contexto}
 
-Histórico da sessão:
-{historico}
+Histórico: {historico}
 """
     try:
         response = requests.post(
@@ -185,21 +167,18 @@ Histórico da sessão:
             json={
                 "model": MODEL_NAME,
                 "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": pergunta}],
-                "temperature": 0.5
+                "temperature": 0.4
             },
             timeout=30
         )
         data = response.json()
-        if response.status_code != 200:
-            return f"Erro Wired: {data.get('error', {}).get('message')}"
         return data['choices'][0]['message']['content']
-    except Exception as e:
-        return "A Wired está instável..."
+    except:
+        return "Ruído na Wired..."
 
 # -------------------------
 # ROTA CHAT
 # -------------------------
-
 @app.post("/chat")
 def chat(msg: Message):
     memoria = carregar_memoria()
@@ -214,11 +193,12 @@ def chat(msg: Message):
     memoria.append(f"Lain: {resposta}")
     salvar_memoria(memoria[-MAX_MEMORY:])
 
-    # O dicionário JSON agora leva o áudio codificado
-    return {"resposta": resposta, "audio": gerar_audio(resposta)}
+    return {
+        "resposta": resposta, 
+        "audio": gerar_audio(resposta)
+    }
 
 if __name__ == "__main__":
     import uvicorn
-    # Render usa a variável PORT
     port = int(os.getenv("PORT", 10000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
