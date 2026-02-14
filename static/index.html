@@ -129,42 +129,48 @@
 
     <div class="window" id="input-window">
         <span class="prompt">></span>
-        <input type="text" id="userInput" placeholder="Digite um comando para a Wired..." autocomplete="off">
+        <input type="text" id="userInput" placeholder="Aperte Enter para conectar à Wired..." autocomplete="off">
     </div>
 
     <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
+
+    <audio id="ambient-noise" loop crossorigin="anonymous">
+        <source src="https://www.soundjay.com/misc/sounds/tv-static-01.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         const input = document.getElementById('userInput');
         const chat = document.getElementById('chat-content');
         const audioPlayer = document.getElementById('lain-voice');
+        const ambientAudio = document.getElementById('ambient-noise');
         const log = document.getElementById('status-log');
 
-        // --- SISTEMA DE FILTRO DE ÁUDIO ---
         let audioCtx;
         let source;
         let filter;
 
         function inicializarAudioWired() {
-            if (audioCtx) return; // Só inicializa uma vez
+            if (audioCtx) return;
 
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            source = audioCtx.createMediaElementSource(audioPlayer);
             
-            // Criando Filtro Bandpass (Efeito de voz de rádio/telefone antigo)
+            // Filtro para a VOZ da Lain
+            source = audioCtx.createMediaElementSource(audioPlayer);
             filter = audioCtx.createBiquadFilter();
             filter.type = 'bandpass';
-            filter.frequency.value = 1100; // Frequência central da voz da Lain
-            filter.Q.value = 1.2; // Intensidade do filtro
+            filter.frequency.value = 1100;
+            filter.Q.value = 1.2;
 
-            // Conectando: Player -> Filtro -> Saída
             source.connect(filter);
             filter.connect(audioCtx.destination);
+
+            // Som Ambiente (Estática) - Volume Baixo
+            ambientAudio.volume = 0.15; 
+            ambientAudio.play().catch(e => console.log("Aguardando interação para áudio ambiente."));
         }
 
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                // Navegadores exigem interação do usuário para ativar áudio
                 inicializarAudioWired();
                 enviar();
             }
@@ -176,7 +182,7 @@
 
             input.value = '';
             chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
-            log.innerHTML += `<br>> Enviando pacote...`;
+            log.innerHTML += `<br>> Pacote enviado...`;
             chat.scrollTop = chat.scrollHeight;
 
             try {
@@ -189,22 +195,17 @@
                 const data = await res.json();
 
                 chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                log.innerHTML += `<br>> Resposta recebida.`;
+                log.innerHTML += `<br>> Sincronizando áudio...`;
 
                 if (data.audio) {
-                    // Se o contexto estiver suspenso (comum no Chrome), retoma
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-                    
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
                     audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
                     audioPlayer.play();
-                    log.innerHTML += `<br>> Áudio processado via Wired Filter.`;
                 }
 
                 chat.scrollTop = chat.scrollHeight;
             } catch (err) {
-                log.innerHTML += `<br>> ERRO NA CONEXÃO WIRED.`;
+                log.innerHTML += `<br>> ERRO CRÍTICO NA WIRED.`;
                 console.error(err);
             }
         }
