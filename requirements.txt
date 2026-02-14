@@ -3,4 +3,4 @@ uvicorn
 requests
 ddgs
 pypdf
-gTTS
+edge-tts
