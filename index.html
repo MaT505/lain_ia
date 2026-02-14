@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lain | Wired Interface</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
+        #chat { height: 400px; overflow-y: auto; border: 1px solid #0f0; padding: 10px; margin-bottom: 10px; }
+        input { background: #000; color: #0f0; border: 1px solid #0f0; width: 80%; padding: 5px; }
+        button { background: #0f0; color: #000; border: none; padding: 5px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Lain Protocol v1.0</h2>
+    <div id="chat"></div>
+    <input type="text" id="input" placeholder="Digite para a Wired...">
+    <button onclick="enviar()">Enviar</button>
+
+    <script>
+        async function enviar() {
+            const input = document.getElementById('input');
+            const chat = document.getElementById('chat');
+            const msg = input.value;
+            if(!msg) return;
+
+            chat.innerHTML += `<div><b>Matheus:</b> ${msg}</div>`;
+            input.value = '';
+
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ mensagem: msg })
+            });
+            const data = await res.json();
+            chat.innerHTML += `<div><b style="color: #f0f">Lain:</b> ${data.resposta}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+    </script>
+</body>
+</html>
