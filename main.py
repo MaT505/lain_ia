@@ -91,11 +91,13 @@ def buscar_web(query):
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# TTS OPENAI
+# TTS OPENAI (CORRIGIDO)
 # -------------------------
 
 def gerar_audio(texto):
-    if not GROQ_API_KEY: return None
+    # Verificação corrigida para a chave da OpenAI
+    if not OPENAI_KEY: 
+        return None
     try:
         response = requests.post(
             "https://api.openai.com/v1/audio/speech",
@@ -108,7 +110,7 @@ def gerar_audio(texto):
     except:
         return None
     return None
-
+    
 # -------------------------
 # PROMPT LAIN
 # -------------------------
