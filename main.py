@@ -7,9 +7,9 @@ import json
 import os
 import glob
 import base64
-import io
+import asyncio
 from pypdf import PdfReader
-import edge_tts  
+import edge_tts  # Alternativa superior e gratuita
 
 app = FastAPI()
 
@@ -82,17 +82,17 @@ def buscar_web(query):
                 if any(x in link.lower() for x in ["brainly", "wikipedia", "significados"]): continue
                 resultados.append(f"Título: {r.get('title')}\nResumo: {r.get('body')[:200]}\n")
     except:
-        return "Conexão instável com a rede externa."
+        return "Conexão instável com a Wired."
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# GERAÇÃO DE ÁUDIO (EdgeTTS - Vozes Melhores)
+# GERAÇÃO DE ÁUDIO (EdgeTTS - Grátis e Realista)
 # -------------------------
 async def gerar_audio_async(texto):
     try:
         print(f"SISTEMA: Gerando áudio via EdgeTTS para: {texto[:30]}...")
         
-        # Voz feminina brasileira da Microsoft
+        # Voz feminina brasileira (Francisca é excelente para a Lain)
         VOICE = "pt-BR-FranciscaNeural" 
         communicate = edge_tts.Communicate(texto, VOICE)
         
@@ -101,9 +101,10 @@ async def gerar_audio_async(texto):
             if chunk["type"] == "audio":
                 audio_data += chunk["data"]
         
-        audio_b64 = base64.b64encode(audio_data).decode("utf-8")
-        print("SISTEMA: Áudio EdgeTTS gerado com sucesso.")
-        return audio_b64
+        if not audio_data:
+            return None
+            
+        return base64.b64encode(audio_data).decode("utf-8")
         
     except Exception as e:
         print(f"ERRO EdgeTTS: {str(e)}")
@@ -159,7 +160,7 @@ Lain: "Sintaxe é apenas estrutura. Certifique-se de que suas fundações esteja
 
 Histórico: {historico}
 """
-    try:
+   try:
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
@@ -173,13 +174,13 @@ Histórico: {historico}
         data = response.json()
         return data['choices'][0]['message']['content']
     except:
-        return "Ruído na Wired..."
+        return "Ruído na transmissão..."
 
 # -------------------------
-# ROTA CHAT
+# ROTA CHAT (ASYNC)
 # -------------------------
 @app.post("/chat")
-def chat(msg: Message):
+async def chat(msg: Message):
     memoria = carregar_memoria()
     memoria.append(f"Usuário: {msg.mensagem}")
     
@@ -192,9 +193,12 @@ def chat(msg: Message):
     memoria.append(f"Lain: {resposta}")
     salvar_memoria(memoria[-MAX_MEMORY:])
 
+    # Gerando áudio de forma assíncrona
+    audio_b64 = await gerar_audio_async(resposta)
+
     return {
         "resposta": resposta, 
-        "audio": gerar_audio(resposta)
+        "audio": audio_b64
     }
 
 if __name__ == "__main__":
