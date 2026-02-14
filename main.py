@@ -9,7 +9,7 @@ import glob
 import base64
 import io
 from pypdf import PdfReader
-from gtts import gTTS  # Biblioteca gratuita do Google
+import edge_tts  
 
 app = FastAPI()
 
@@ -86,28 +86,27 @@ def buscar_web(query):
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# GERAÇÃO DE ÁUDIO GRÁTIS (gTTS)
+# GERAÇÃO DE ÁUDIO (EdgeTTS - Vozes Melhores)
 # -------------------------
-def gerar_audio(texto):
+async def gerar_audio_async(texto):
     try:
-        print(f"SISTEMA: Gerando áudio via gTTS para: {texto[:30]}...")
+        print(f"SISTEMA: Gerando áudio via EdgeTTS para: {texto[:30]}...")
         
-        # Cria o objeto gTTS (Voz do Google em Português)
-        tts = gTTS(text=texto, lang='pt-br', slow=False)
+        # Voz feminina brasileira da Microsoft
+        VOICE = "pt-BR-FranciscaNeural" 
+        communicate = edge_tts.Communicate(texto, VOICE)
         
-        # Salva o áudio em um buffer de memória (BytesIO)
-        mp3_fp = io.BytesIO()
-        tts.write_to_fp(mp3_fp)
-        mp3_fp.seek(0)
+        audio_data = b""
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_data += chunk["data"]
         
-        # Converte os bytes do áudio para Base64 para enviar ao navegador
-        audio_b64 = base64.b64encode(mp3_fp.read()).decode("utf-8")
-        
-        print("SISTEMA: Áudio gTTS gerado com sucesso.")
+        audio_b64 = base64.b64encode(audio_data).decode("utf-8")
+        print("SISTEMA: Áudio EdgeTTS gerado com sucesso.")
         return audio_b64
         
     except Exception as e:
-        print(f"ERRO gTTS: {str(e)}")
+        print(f"ERRO EdgeTTS: {str(e)}")
         return None
         
 # -------------------------
