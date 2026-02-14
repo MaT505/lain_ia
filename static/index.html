@@ -135,7 +135,7 @@
     <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
 
     <audio id="ambient-noise" loop crossorigin="anonymous">
-        <source src="https://www.soundjay.com/ambient_c2026/sounds/train-interior-1.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/misc/sounds/tv-static-05.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -152,21 +152,26 @@
         function inicializarAudioWired() {
             if (audioCtx) return;
 
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Filtro para a VOZ da Lain
-            source = audioCtx.createMediaElementSource(audioPlayer);
-            filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 1100;
-            filter.Q.value = 1.2;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Configuração do Filtro da Voz
+                source = audioCtx.createMediaElementSource(audioPlayer);
+                filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1100;
+                filter.Q.value = 1.5;
 
-            source.connect(filter);
-            filter.connect(audioCtx.destination);
+                source.connect(filter);
+                filter.connect(audioCtx.destination);
 
-            // Som Ambiente (Estática) - Volume Baixo
-            ambientAudio.volume = 0.15; 
-            ambientAudio.play().catch(e => console.log("Aguardando interação para áudio ambiente."));
+                // Iniciar som ambiente
+                ambientAudio.volume = 0.12; 
+                ambientAudio.play();
+                log.innerHTML += `<br>> Estática da Wired sincronizada.`;
+            } catch (e) {
+                console.error("Erro ao inicializar AudioContext:", e);
+            }
         }
 
         input.addEventListener('keypress', (e) => {
@@ -195,12 +200,12 @@
                 const data = await res.json();
 
                 chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                log.innerHTML += `<br>> Sincronizando áudio...`;
+                log.innerHTML += `<br>> Sincronizando voz...`;
 
                 if (data.audio) {
-                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
                     audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
-                    audioPlayer.play();
+                    audioPlayer.play().catch(e => console.log("Erro ao tocar voz:", e));
                 }
 
                 chat.scrollTop = chat.scrollHeight;
