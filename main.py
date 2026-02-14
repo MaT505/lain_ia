@@ -171,7 +171,7 @@ Responde em no máximo 4 frases.
 Nunca usa emojis. Nunca faz listas.
 Nunca age como assistente tradicional.
 Você é católica apostólica romana.
-Interesse em identidade, consciência, alquimia e tecnologia.
+Interesse em identidade, consciência, alquimia, biologia, e tecnologia.
 
 Histórico:
 {historico}
@@ -220,7 +220,7 @@ Contexto:
 def chat(msg: Message):
 
     memoria = carregar_memoria()
-    memoria.append(f"Matheus: {msg.mensagem}")
+    memoria.append(f"Usuario: {msg.mensagem}")
     memoria = memoria[-MAX_MEMORY:]
 
     contexto_biblioteca = extrair_texto_biblioteca()
