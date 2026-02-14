@@ -86,38 +86,39 @@ def buscar_web(query):
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# GERAÇÃO DE ÁUDIO (EdgeTTS)
+# GERAÇÃO DE ÁUDIO (Com Retry para evitar o erro de No Audio)
 # -------------------------
 async def gerar_audio_async(texto):
     if not texto or len(texto.strip()) == 0:
         return None
         
-    try:
-        print(f"SISTEMA: Iniciando EdgeTTS para: {texto[:30]}...")
-        
-        # Francisca é a voz padrão, mas você pode testar 'pt-BR-BrendaNeural'
-        VOICE = "pt-BR-BrendaNeural" 
-        
-        # Adicionamos uma pequena pausa no início para garantir o processamento
-        communicate = edge_tts.Communicate(texto, VOICE)
-        
-        audio_data = b""
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_data += chunk["data"]
-        
-        if not audio_data:
-            return None
+    # Tentaremos até 3 vezes caso o servidor da Microsoft falhe
+    for tentativa in range(3):
+        try:
+            print(f"SISTEMA: Tentativa {tentativa + 1} para EdgeTTS: {texto[:20]}...")
             
-        return base64.b64encode(audio_data).decode("utf-8")
-        
-    except Exception as e:
-        print(f"ERRO EdgeTTS: {str(e)}")
-        return None
+            # Brenda é uma ótima escolha para a Lain
+            VOICE = "pt-BR-BrendaNeural" 
+            communicate = edge_tts.Communicate(texto, VOICE)
             
-    except Exception as e:
-        print(f"ERRO EdgeTTS: {str(e)}")
-        return None
+            audio_data = b""
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_data += chunk["data"]
+            
+            if audio_data:
+                print(f"SISTEMA: Sucesso! Áudio gerado ({len(audio_data)} bytes).")
+                return base64.b64encode(audio_data).decode("utf-8")
+            
+            # Se chegou aqui sem audio_data, espera um pouco antes de tentar de novo
+            await asyncio.sleep(1)
+            
+        except Exception as e:
+            print(f"ERRO na tentativa {tentativa + 1}: {str(e)}")
+            await asyncio.sleep(1)
+            
+    print("ERRO: Todas as tentativas de áudio falharam.")
+    return None
 # -------------------------
 # PROMPT LAIN
 # -------------------------
