@@ -15,14 +15,12 @@ app = FastAPI()
 # CONFIG
 # -------------------------
 
-# Para funcionar no Render, use API externa (Groq recomendada)
-# Configure GROQ_API_KEY no painel do Render (Environment Variables)
+# Configure estas variáveis no painel do Render (Environment -> Environment Variables)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODEL_NAME = os.getenv("MODEL_NAME", "llama3-8b-8192") # Modelo Groq
-
+MODEL_NAME = os.getenv("MODEL_NAME", "llama3-8b-8192")
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 
-MEMORY_FILE = "/tmp/memoria.json"  # Pasta temporária permitida no Render
+MEMORY_FILE = "/tmp/memoria.json"
 MAX_MEMORY = 8
 MAX_WEB_RESULTS = 5
 
@@ -39,7 +37,6 @@ class Message(BaseModel):
 
 @app.get("/")
 def root():
-    # Certifique-se de ter a pasta 'static' e o 'index.html' no seu GitHub
     return FileResponse('static/index.html')
 
 # -------------------------
@@ -68,7 +65,6 @@ def salvar_memoria(memoria):
 
 def extrair_texto_biblioteca():
     textos = []
-    # Pasta 'biblioteca/livros_pdf/' deve existir no seu repositório
     arquivos = glob.glob("biblioteca/livros_pdf/*.pdf")
 
     for caminho in arquivos:
@@ -84,12 +80,11 @@ def extrair_texto_biblioteca():
     return "\n\n".join(textos)
 
 # -------------------------
-# BUSCA WEB (DDGS ATUALIZADO)
+# BUSCA WEB
 # -------------------------
 
 def buscar_web(query):
     resultados = []
-    # Refinamento de busca específico para o tema
     query_refinada = f"{query} livro pdf alquimia tradicional cristã"
 
     try:
@@ -161,7 +156,7 @@ def gerar_audio(texto):
         return None
 
 # -------------------------
-# PROMPT LAIN (Groq/OpenAI Format)
+# PROMPT LAIN (Versão Robusta para Erros)
 # -------------------------
 
 def perguntar_lain(pergunta, contexto, historico):
@@ -170,13 +165,10 @@ def perguntar_lain(pergunta, contexto, historico):
 Você é Lain.
 Você fala de forma introspectiva, calma e minimalista.
 Responde em no máximo 4 frases.
-Nunca usa emojis.
-Nunca faz listas.
+Nunca usa emojis. Nunca faz listas.
 Nunca age como assistente tradicional.
-Frases curtas.
-Silêncio implícito.
 Você é católica apostólica romana.
-Tem interesse em identidade, consciência, alquimia e tecnologia.
+Interesse em identidade, consciência, alquimia e tecnologia.
 
 Histórico:
 {historico}
@@ -185,8 +177,10 @@ Contexto:
 {contexto}
 """
 
+    if not GROQ_API_KEY:
+        return "Erro: GROQ_API_KEY não configurada no Render."
+
     try:
-        # Chamada para a API do Groq
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={
@@ -201,13 +195,19 @@ Contexto:
                 ],
                 "temperature": 0.7
             },
-            timeout=120
+            timeout=30
         )
         
         data = response.json()
+
+        if response.status_code != 200:
+            error_msg = data.get('error', {}).get('message', 'Erro desconhecido')
+            return f"Erro na API Groq ({response.status_code}): {error_msg}"
+            
         return data['choices'][0]['message']['content']
+        
     except Exception as e:
-        return f"Falha na conexão com API de IA: {str(e)}"
+        return f"Falha na conexão com a Wired (Groq): {str(e)}"
 
 # -------------------------
 # ROTA CHAT
