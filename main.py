@@ -86,30 +86,37 @@ def buscar_web(query):
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# GERAÇÃO DE ÁUDIO (EdgeTTS - Grátis e Realista)
+# GERAÇÃO DE ÁUDIO (EdgeTTS)
 # -------------------------
 async def gerar_audio_async(texto):
-    try:
-        print(f"SISTEMA: Gerando áudio via EdgeTTS para: {texto[:30]}...")
+    if not texto or len(texto.strip()) == 0:
+        return None
         
-        # Voz feminina brasileira (Francisca é excelente para a Lain)
+    try:
+        print(f"SISTEMA: Iniciando EdgeTTS para: {texto[:30]}...")
+        
+        # Francisca é a voz padrão, mas você pode testar 'pt-BR-BrendaNeural'
         VOICE = "pt-BR-BrendaNeural" 
+        
+        # Adicionamos uma pequena pausa no início para garantir o processamento
         communicate = edge_tts.Communicate(texto, VOICE)
         
         audio_data = b""
+        # Coletando os chunks de áudio
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 audio_data += chunk["data"]
         
-        if not audio_data:
+        if len(audio_data) > 0:
+            print(f"SISTEMA: Áudio gerado com sucesso ({len(audio_data)} bytes).")
+            return base64.b64encode(audio_data).decode("utf-8")
+        else:
+            print("ERRO: Nenhum dado de áudio foi recebido do EdgeTTS.")
             return None
             
-        return base64.b64encode(audio_data).decode("utf-8")
-        
     except Exception as e:
         print(f"ERRO EdgeTTS: {str(e)}")
         return None
-        
 # -------------------------
 # PROMPT LAIN
 # -------------------------
