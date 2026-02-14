@@ -17,7 +17,10 @@ app = FastAPI()
 
 # Configure estas variáveis no painel do Render (Environment -> Environment Variables)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODEL_NAME = os.getenv("MODEL_NAME", "llama3-8b-8192")
+
+# ATUALIZADO: Usando Llama 3.1 8B Instant (modelo atualizado do Groq)
+MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
+
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 
 MEMORY_FILE = "/tmp/memoria.json"
@@ -156,7 +159,7 @@ def gerar_audio(texto):
         return None
 
 # -------------------------
-# PROMPT LAIN (Versão Robusta para Erros)
+# PROMPT LAIN
 # -------------------------
 
 def perguntar_lain(pergunta, contexto, historico):
@@ -193,7 +196,7 @@ Contexto:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": pergunta}
                 ],
-                "temperature": 0.7
+                "temperature": 0.6
             },
             timeout=30
         )
