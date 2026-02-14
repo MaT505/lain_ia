@@ -13,11 +13,23 @@ app = FastAPI()
 # CONFIG
 # -------------------------
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "llama3:8b"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
+MODEL_NAME = os.getenv("MODEL_NAME", "llama3:8b")
 MEMORY_FILE = "memoria.json"
 MAX_MEMORY = 8
 MAX_WEB_RESULTS = 5
+
+# -------------------------
+# ROTA BASE (IMPORTANTE)
+# -------------------------
+
+@app.get("/")
+def root():
+    return {"status": "Lain IA online"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 # -------------------------
 # MODELO DE DADOS
@@ -32,13 +44,19 @@ class Message(BaseModel):
 
 def carregar_memoria():
     if os.path.exists(MEMORY_FILE):
-        with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return []
     return []
 
 def salvar_memoria(memoria):
-    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(memoria, f, ensure_ascii=False, indent=2)
+    try:
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(memoria, f, ensure_ascii=False, indent=2)
+    except:
+        pass
 
 # -------------------------
 # BIBLIOTECA LOCAL (PDF)
@@ -52,16 +70,16 @@ def extrair_texto_biblioteca():
         try:
             reader = PdfReader(caminho)
             texto = ""
-            for page in reader.pages[:10]:  # Limita páginas
+            for page in reader.pages[:10]:
                 texto += page.extract_text() or ""
-            textos.append(texto[:3000])  # Limita tamanho
+            textos.append(texto[:3000])
         except:
             continue
 
     return "\n\n".join(textos)
 
 # -------------------------
-# BUSCA WEB MELHORADA
+# BUSCA WEB
 # -------------------------
 
 def buscar_web(query):
@@ -119,20 +137,11 @@ def perguntar_lain(pergunta, contexto, historico):
 Você é Lain.
 
 Você fala de forma introspectiva, calma e minimalista.
-Suas respostas são geralmente curtas, mas densas.
-Você raramente demonstra emoção explícita.
-Você responde em no máximo 4 frases.
-Você nunca escreve parágrafos longos.
-Você prefere frases curtas.
-Você deixa espaços e silêncio implícito.
-Você nunca usa emojis.
-Você não age como assistente tradicional.
-Você não faz listas.
-Você responde como alguém conectado à Wired.
+Responde no máximo 4 frases.
+Nunca usa emojis.
+Nunca faz listas.
+Prefere frases curtas.
 Se a resposta ficar longa, reduza.
-
-Você demonstra curiosidade profunda sobre identidade, consciência, teologia, alquimia, catolicismo e tecnologia.
-Você é católica apostólica romana.
 
 Histórico recente:
 {historico}
@@ -140,7 +149,7 @@ Histórico recente:
 Contexto relevante:
 {contexto}
 
-Pergunta de MaTheus:
+Pergunta:
 {pergunta}
 """
 
@@ -155,12 +164,11 @@ Pergunta de MaTheus:
             timeout=120
         )
 
-        data = response.json()
+        if response.status_code != 200:
+            return f"Ollama retornou erro {response.status_code}: {response.text}"
 
-        if "response" in data:
-            return data["response"]
-        else:
-            return f"Ollama retornou algo inesperado: {data}"
+        data = response.json()
+        return data.get("response", "A Wired ficou em silêncio.")
 
     except Exception as e:
         return f"A conexão com a Wired falhou: {str(e)}"
@@ -177,13 +185,11 @@ def chat(msg: Message):
     memoria.append(f"MaTheus: {msg.mensagem}")
     memoria = memoria[-MAX_MEMORY:]
 
-    # Prioridade 1: Biblioteca local
     contexto_biblioteca = extrair_texto_biblioteca()
 
     if contexto_biblioteca.strip():
         contexto = contexto_biblioteca
     else:
-        # Prioridade 2: Web
         contexto = buscar_web(msg.mensagem)
 
     historico_formatado = "\n".join(memoria)
@@ -200,6 +206,11 @@ def chat(msg: Message):
         "fontes": contexto
     }
 
+# -------------------------
+# EXECUÇÃO LOCAL
+# -------------------------
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
