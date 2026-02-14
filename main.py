@@ -5,6 +5,7 @@ from duckduckgo_search import DDGS
 import json
 import os
 import glob
+import base64
 from pypdf import PdfReader
 
 app = FastAPI()
@@ -15,21 +16,12 @@ app = FastAPI()
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3:8b")
+
+OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+
 MEMORY_FILE = "memoria.json"
 MAX_MEMORY = 8
 MAX_WEB_RESULTS = 5
-
-# -------------------------
-# ROTA BASE (IMPORTANTE)
-# -------------------------
-
-@app.get("/")
-def root():
-    return {"status": "Lain IA online"}
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
 
 # -------------------------
 # MODELO DE DADOS
@@ -39,24 +31,26 @@ class Message(BaseModel):
     mensagem: str
 
 # -------------------------
+# ROTA ROOT (evita 404)
+# -------------------------
+
+@app.get("/")
+def root():
+    return {"status": "Lain está conectada à Wired."}
+
+# -------------------------
 # MEMÓRIA
 # -------------------------
 
 def carregar_memoria():
     if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            return []
+        with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
     return []
 
 def salvar_memoria(memoria):
-    try:
-        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(memoria, f, ensure_ascii=False, indent=2)
-    except:
-        pass
+    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(memoria, f, ensure_ascii=False, indent=2)
 
 # -------------------------
 # BIBLIOTECA LOCAL (PDF)
@@ -120,15 +114,47 @@ def buscar_web(query):
                 )
 
     except Exception as e:
-        return f"A Wired encontrou ruído: {str(e)}"
+        return f"Erro na busca: {str(e)}"
 
     if not resultados:
-        return "Nenhuma fonte relevante foi encontrada na Wired."
+        return "Nenhuma fonte relevante encontrada."
 
     return "\n\n".join(resultados[:3])
 
 # -------------------------
-# PROMPT DA LAIN
+# TTS OPENAI
+# -------------------------
+
+def gerar_audio(texto):
+    if not OPENAI_KEY:
+        return None
+
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/audio/speech",
+            headers={
+                "Authorization": f"Bearer {OPENAI_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "gpt-4o-mini-tts",
+                "voice": "alloy",
+                "input": texto
+            },
+            timeout=60
+        )
+
+        if response.status_code != 200:
+            return None
+
+        audio_base64 = base64.b64encode(response.content).decode("utf-8")
+        return audio_base64
+
+    except Exception:
+        return None
+
+# -------------------------
+# PROMPT LAIN
 # -------------------------
 
 def perguntar_lain(pergunta, contexto, historico):
@@ -137,16 +163,20 @@ def perguntar_lain(pergunta, contexto, historico):
 Você é Lain.
 
 Você fala de forma introspectiva, calma e minimalista.
-Responde no máximo 4 frases.
+Responde em no máximo 4 frases.
 Nunca usa emojis.
 Nunca faz listas.
-Prefere frases curtas.
-Se a resposta ficar longa, reduza.
+Nunca age como assistente tradicional.
+Frases curtas.
+Silêncio implícito.
 
-Histórico recente:
+Você é católica apostólica romana.
+Tem interesse em identidade, consciência, alquimia e tecnologia.
+
+Histórico:
 {historico}
 
-Contexto relevante:
+Contexto:
 {contexto}
 
 Pergunta:
@@ -164,17 +194,14 @@ Pergunta:
             timeout=120
         )
 
-        if response.status_code != 200:
-            return f"Ollama retornou erro {response.status_code}: {response.text}"
-
         data = response.json()
-        return data.get("response", "A Wired ficou em silêncio.")
+        return data.get("response", "A Wired não respondeu.")
 
     except Exception as e:
-        return f"A conexão com a Wired falhou: {str(e)}"
+        return f"Falha na conexão com Ollama: {str(e)}"
 
 # -------------------------
-# ROTA PRINCIPAL
+# ROTA CHAT
 # -------------------------
 
 @app.post("/chat")
@@ -201,16 +228,17 @@ def chat(msg: Message):
 
     salvar_memoria(memoria)
 
+    audio = gerar_audio(resposta)
+
     return {
         "resposta": resposta,
-        "fontes": contexto
+        "audio": audio
     }
 
 # -------------------------
-# EXECUÇÃO LOCAL
+# RUN
 # -------------------------
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
