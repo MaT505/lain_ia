@@ -15,9 +15,11 @@ app = FastAPI()
 # CONFIG
 # -------------------------
 
-# No Render, configure estas variáveis nas 'Environment Variables' do painel
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
-MODEL_NAME = os.getenv("MODEL_NAME", "llama3:8b")
+# Para funcionar no Render, use API externa (Groq recomendada)
+# Configure GROQ_API_KEY no painel do Render (Environment Variables)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+MODEL_NAME = os.getenv("MODEL_NAME", "llama3-8b-8192") # Modelo Groq
+
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 
 MEMORY_FILE = "/tmp/memoria.json"  # Pasta temporária permitida no Render
@@ -32,12 +34,12 @@ class Message(BaseModel):
     mensagem: str
 
 # -------------------------
-# ROTA INTERFACE (A que você verá no navegador)
+# ROTA INTERFACE
 # -------------------------
 
 @app.get("/")
 def root():
-    # Certifique-se de criar a pasta 'static' e o arquivo 'index.html'
+    # Certifique-se de ter a pasta 'static' e o 'index.html' no seu GitHub
     return FileResponse('static/index.html')
 
 # -------------------------
@@ -66,13 +68,13 @@ def salvar_memoria(memoria):
 
 def extrair_texto_biblioteca():
     textos = []
+    # Pasta 'biblioteca/livros_pdf/' deve existir no seu repositório
     arquivos = glob.glob("biblioteca/livros_pdf/*.pdf")
 
     for caminho in arquivos:
         try:
             reader = PdfReader(caminho)
             texto = ""
-            # Pega as primeiras 10 páginas para não estourar o contexto
             for page in reader.pages[:10]:
                 texto += page.extract_text() or ""
             textos.append(texto[:3000])
@@ -82,11 +84,12 @@ def extrair_texto_biblioteca():
     return "\n\n".join(textos)
 
 # -------------------------
-# BUSCA WEB (Usando a biblioteca DDGS atualizada)
+# BUSCA WEB (DDGS ATUALIZADO)
 # -------------------------
 
 def buscar_web(query):
     resultados = []
+    # Refinamento de busca específico para o tema
     query_refinada = f"{query} livro pdf alquimia tradicional cristã"
 
     try:
@@ -141,7 +144,7 @@ def gerar_audio(texto):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "tts-1", # Modelo padrão de voz
+                "model": "tts-1",
                 "voice": "alloy",
                 "input": texto
             },
@@ -158,12 +161,12 @@ def gerar_audio(texto):
         return None
 
 # -------------------------
-# PROMPT LAIN
+# PROMPT LAIN (Groq/OpenAI Format)
 # -------------------------
 
 def perguntar_lain(pergunta, contexto, historico):
 
-    prompt = f"""
+    system_prompt = f"""
 Você é Lain.
 Você fala de forma introspectiva, calma e minimalista.
 Responde em no máximo 4 frases.
@@ -180,27 +183,31 @@ Histórico:
 
 Contexto:
 {contexto}
-
-Pergunta:
-{pergunta}
 """
 
     try:
+        # Chamada para a API do Groq
         response = requests.post(
-            OLLAMA_URL,
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
             json={
                 "model": MODEL_NAME,
-                "prompt": prompt,
-                "stream": False
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": pergunta}
+                ],
+                "temperature": 0.7
             },
             timeout=120
         )
-
+        
         data = response.json()
-        return data.get("response", "A Wired não respondeu.")
-
+        return data['choices'][0]['message']['content']
     except Exception as e:
-        return f"Falha na conexão com Ollama (Verifique a URL externa): {str(e)}"
+        return f"Falha na conexão com API de IA: {str(e)}"
 
 # -------------------------
 # ROTA CHAT
@@ -240,6 +247,5 @@ def chat(msg: Message):
 
 if __name__ == "__main__":
     import uvicorn
-    # No Render, a porta é definida pela variável de ambiente PORT
     port = int(os.getenv("PORT", 10000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
