@@ -95,7 +95,7 @@ def buscar_web(query):
 # -------------------------
 
 def gerar_audio(texto):
-    if not OPENAI_KEY: return None
+    if not GROQ_API_KEY: return None
     try:
         response = requests.post(
             "https://api.openai.com/v1/audio/speech",
