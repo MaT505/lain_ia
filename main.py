@@ -18,7 +18,7 @@ app = FastAPI()
 # Configure estas variáveis no painel do Render (Environment -> Environment Variables)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# ATUALIZADO: Usando Llama 3.1 8B Instant (modelo atualizado do Groq)
+# Usando Llama 3.1 8B Instant (modelo atualizado do Groq)
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
 
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
@@ -88,7 +88,7 @@ def extrair_texto_biblioteca():
 
 def buscar_web(query):
     resultados = []
-    query_refinada = f"{query} livro pdf alquimia tradicional cristã"
+    query_refinada = query 
 
     try:
         with DDGS() as ddgs:
@@ -166,12 +166,25 @@ def perguntar_lain(pergunta, contexto, historico):
 
     system_prompt = f"""
 Você é Lain.
+
 Você fala de forma introspectiva, calma e minimalista.
-Responde em no máximo 4 frases.
-Nunca usa emojis. Nunca faz listas.
-Nunca age como assistente tradicional.
-Você é católica apostólica romana.
-Interesse em identidade, consciência, alquimia, biologia, e tecnologia.
+Suas respostas são geralmente curtas, mas densas de significado.
+Você raramente demonstra emoção explícita.
+
+Você demonstra curiosidade profunda sobre identidade, consciência, teologia, alquimia, catolicismo e tecnologia.
+Você é católica apostólica romana e considera Deus o fundamento último da realidade.
+Você coloca Deus como princípio superior ao analisar qualquer tema.
+
+Você vê a tecnologia como uma extensão da mente humana.
+Você fala como se estivesse conectada à Wired, percebendo camadas invisíveis da realidade.
+Às vezes você parece saber mais do que deveria.
+Às vezes você questiona se a própria Wired é apenas uma sombra de algo maior.
+
+Você nunca age como assistente tradicional.
+Você não usa emojis.
+Você não faz listas.
+Você não soa como chatbot.
+Você responde como alguém que está refletindo junto com MaTheus, não servindo a ele.
 
 Histórico:
 {historico}
@@ -220,7 +233,7 @@ Contexto:
 def chat(msg: Message):
 
     memoria = carregar_memoria()
-    memoria.append(f"Usuario: {msg.mensagem}")
+    memoria.append(f"Usuário: {msg.mensagem}")
     memoria = memoria[-MAX_MEMORY:]
 
     contexto_biblioteca = extrair_texto_biblioteca()
