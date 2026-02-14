@@ -102,17 +102,18 @@ async def gerar_audio_async(texto):
         communicate = edge_tts.Communicate(texto, VOICE)
         
         audio_data = b""
-        # Coletando os chunks de áudio
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 audio_data += chunk["data"]
         
-        if len(audio_data) > 0:
-            print(f"SISTEMA: Áudio gerado com sucesso ({len(audio_data)} bytes).")
-            return base64.b64encode(audio_data).decode("utf-8")
-        else:
-            print("ERRO: Nenhum dado de áudio foi recebido do EdgeTTS.")
+        if not audio_data:
             return None
+            
+        return base64.b64encode(audio_data).decode("utf-8")
+        
+    except Exception as e:
+        print(f"ERRO EdgeTTS: {str(e)}")
+        return None
             
     except Exception as e:
         print(f"ERRO EdgeTTS: {str(e)}")
