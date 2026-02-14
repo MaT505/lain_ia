@@ -160,7 +160,7 @@ Lain: "Sintaxe é apenas estrutura. Certifique-se de que suas fundações esteja
 
 Histórico: {historico}
 """
-   try:
+    try:
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
@@ -173,9 +173,9 @@ Histórico: {historico}
         )
         data = response.json()
         return data['choices'][0]['message']['content']
-    except:
+    except Exception as e:
+        print(f"Erro na API Groq: {e}")
         return "Ruído na transmissão..."
-
 # -------------------------
 # ROTA CHAT (ASYNC)
 # -------------------------
