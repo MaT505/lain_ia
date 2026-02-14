@@ -8,6 +8,7 @@ import os
 import glob
 import base64
 import asyncio
+import re
 from pypdf import PdfReader
 import edge_tts  # Alternativa superior e gratuita
 
@@ -93,13 +94,29 @@ async def gerar_audio_async(texto):
         return None
         
     try:
-        print(f"SISTEMA: Iniciando EdgeTTS para: {texto[:30]}...")
+        # --- LIMPEZA DO TEXTO ---
+        # 1. Remove o que estiver entre asteriscos (ex: *sorri*, **ação**)
+        # O padrão r'\*.*?\*' encontra o primeiro '*' até o próximo '*' de forma não-gulosa
+        texto_limpo = re.sub(r'\*.*?\*', '', texto)
         
-        # Francisca é a voz padrão, mas você pode testar 'pt-BR-BrendaNeural'
+        # 2. Remove o nome do personagem no início (ex: "Lain: ")
+        # O padrão r'^\w+:\s*' remove uma palavra seguida de ':' no início da string
+        texto_limpo = re.sub(r'^\w+:\s*', '', texto_limpo)
+        
+        # 3. Limpa espaços extras que sobraram
+        texto_limpo = texto_limpo.strip()
+        
+        if not texto_limpo:
+            print("SISTEMA: Texto ficou vazio após a limpeza (apenas ações).")
+            return None
+
+        print(f"SISTEMA: Iniciando EdgeTTS para: {texto_limpo[:40]}...")
+        
+        # Francisca é a voz padrão
         VOICE = "pt-BR-FranciscaNeural" 
         
-        # Adicionamos uma pequena pausa no início para garantir o processamento
-        communicate = edge_tts.Communicate(texto, VOICE)
+        # Comunicar com o texto já limpo
+        communicate = edge_tts.Communicate(texto_limpo, VOICE)
         
         audio_data = b""
         # Coletando os chunks de áudio
@@ -117,6 +134,7 @@ async def gerar_audio_async(texto):
     except Exception as e:
         print(f"ERRO EdgeTTS: {str(e)}")
         return None
+        
 # -------------------------
 # PROMPT LAIN
 # -------------------------
