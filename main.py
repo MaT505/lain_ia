@@ -15,7 +15,6 @@ app = FastAPI()
 # CONFIG
 # -------------------------
 
-# Configure no Render
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
@@ -66,7 +65,7 @@ def extrair_texto_biblioteca():
         try:
             reader = PdfReader(caminho)
             texto = ""
-            for page in reader.pages[:5]: # Reduzido para economizar contexto
+            for page in reader.pages[:5]:
                 texto += page.extract_text() or ""
             textos.append(texto[:2000])
         except:
@@ -91,26 +90,43 @@ def buscar_web(query):
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# TTS OPENAI (CORRIGIDO)
+# TTS OPENAI (LOGS ADICIONADOS)
 # -------------------------
 
 def gerar_audio(texto):
-    # Verificação corrigida para a chave da OpenAI
     if not OPENAI_KEY: 
+        print("SISTEMA: OPENAI_API_KEY não encontrada nas variáveis de ambiente.")
         return None
+    
+    print(f"SISTEMA: Tentando gerar áudio para: {texto[:30]}...")
+    
     try:
         response = requests.post(
             "https://api.openai.com/v1/audio/speech",
-            headers={"Authorization": f"Bearer {OPENAI_KEY}", "Content-Type": "application/json"},
-            json={"model": "tts-1", "voice": "alloy", "input": texto},
+            headers={
+                "Authorization": f"Bearer {OPENAI_KEY}", 
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "tts-1", 
+                "voice": "nova", # Voz 'nova' soa mais feminina e calma para a Lain
+                "input": texto
+            },
             timeout=30
         )
+        
         if response.status_code == 200:
+            print("SISTEMA: Áudio gerado com sucesso.")
             return base64.b64encode(response.content).decode("utf-8")
-    except:
+        else:
+            # Isso vai aparecer no log do Render
+            print(f"ERRO OPENAI: Status {response.status_code} - Resposta: {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"ERRO EXCEPTION AUDIO: {str(e)}")
         return None
-    return None
-    
+        
 # -------------------------
 # PROMPT LAIN
 # -------------------------
@@ -198,9 +214,11 @@ def chat(msg: Message):
     memoria.append(f"Lain: {resposta}")
     salvar_memoria(memoria[-MAX_MEMORY:])
 
+    # O dicionário JSON agora leva o áudio codificado
     return {"resposta": resposta, "audio": gerar_audio(resposta)}
 
 if __name__ == "__main__":
     import uvicorn
+    # Render usa a variável PORT
     port = int(os.getenv("PORT", 10000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
