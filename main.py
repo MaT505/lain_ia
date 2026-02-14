@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import requests
 from ddgs import DDGS
@@ -14,12 +15,12 @@ app = FastAPI()
 # CONFIG
 # -------------------------
 
+# No Render, configure estas variáveis nas 'Environment Variables' do painel
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3:8b")
-
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 
-MEMORY_FILE = "memoria.json"
+MEMORY_FILE = "/tmp/memoria.json"  # Pasta temporária permitida no Render
 MAX_MEMORY = 8
 MAX_WEB_RESULTS = 5
 
@@ -31,12 +32,13 @@ class Message(BaseModel):
     mensagem: str
 
 # -------------------------
-# ROTA ROOT (evita 404)
+# ROTA INTERFACE (A que você verá no navegador)
 # -------------------------
 
 @app.get("/")
 def root():
-    return {"status": "Lain está conectada à Wired."}
+    # Certifique-se de criar a pasta 'static' e o arquivo 'index.html'
+    return FileResponse('static/index.html')
 
 # -------------------------
 # MEMÓRIA
@@ -44,13 +46,19 @@ def root():
 
 def carregar_memoria():
     if os.path.exists(MEMORY_FILE):
-        with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return []
     return []
 
 def salvar_memoria(memoria):
-    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(memoria, f, ensure_ascii=False, indent=2)
+    try:
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(memoria, f, ensure_ascii=False, indent=2)
+    except:
+        pass
 
 # -------------------------
 # BIBLIOTECA LOCAL (PDF)
@@ -64,6 +72,7 @@ def extrair_texto_biblioteca():
         try:
             reader = PdfReader(caminho)
             texto = ""
+            # Pega as primeiras 10 páginas para não estourar o contexto
             for page in reader.pages[:10]:
                 texto += page.extract_text() or ""
             textos.append(texto[:3000])
@@ -73,7 +82,7 @@ def extrair_texto_biblioteca():
     return "\n\n".join(textos)
 
 # -------------------------
-# BUSCA WEB
+# BUSCA WEB (Usando a biblioteca DDGS atualizada)
 # -------------------------
 
 def buscar_web(query):
@@ -82,24 +91,19 @@ def buscar_web(query):
 
     try:
         with DDGS() as ddgs:
-            for r in ddgs.text(
+            search_results = ddgs.text(
                 query_refinada,
                 region="br-pt",
                 safesearch="moderate",
                 max_results=MAX_WEB_RESULTS
-            ):
+            )
+            
+            for r in search_results:
                 titulo = r.get("title", "")
                 link = r.get("href", "")
                 snippet = r.get("body", "")
 
-                bloqueados = [
-                    "brainly",
-                    "todasasrespostas",
-                    "wikipedia",
-                    "significados",
-                    "resumos"
-                ]
-
+                bloqueados = ["brainly", "todasasrespostas", "wikipedia", "significados", "resumos"]
                 if any(site in link.lower() for site in bloqueados):
                     continue
 
@@ -137,7 +141,7 @@ def gerar_audio(texto):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "gpt-4o-mini-tts",
+                "model": "tts-1", # Modelo padrão de voz
                 "voice": "alloy",
                 "input": texto
             },
@@ -161,7 +165,6 @@ def perguntar_lain(pergunta, contexto, historico):
 
     prompt = f"""
 Você é Lain.
-
 Você fala de forma introspectiva, calma e minimalista.
 Responde em no máximo 4 frases.
 Nunca usa emojis.
@@ -169,7 +172,6 @@ Nunca faz listas.
 Nunca age como assistente tradicional.
 Frases curtas.
 Silêncio implícito.
-
 Você é católica apostólica romana.
 Tem interesse em identidade, consciência, alquimia e tecnologia.
 
@@ -198,7 +200,7 @@ Pergunta:
         return data.get("response", "A Wired não respondeu.")
 
     except Exception as e:
-        return f"Falha na conexão com Ollama: {str(e)}"
+        return f"Falha na conexão com Ollama (Verifique a URL externa): {str(e)}"
 
 # -------------------------
 # ROTA CHAT
@@ -208,8 +210,7 @@ Pergunta:
 def chat(msg: Message):
 
     memoria = carregar_memoria()
-
-    memoria.append(f"MaTheus: {msg.mensagem}")
+    memoria.append(f"Matheus: {msg.mensagem}")
     memoria = memoria[-MAX_MEMORY:]
 
     contexto_biblioteca = extrair_texto_biblioteca()
@@ -220,12 +221,10 @@ def chat(msg: Message):
         contexto = buscar_web(msg.mensagem)
 
     historico_formatado = "\n".join(memoria)
-
     resposta = perguntar_lain(msg.mensagem, contexto, historico_formatado)
 
     memoria.append(f"Lain: {resposta}")
     memoria = memoria[-MAX_MEMORY:]
-
     salvar_memoria(memoria)
 
     audio = gerar_audio(resposta)
@@ -241,4 +240,6 @@ def chat(msg: Message):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    # No Render, a porta é definida pela variável de ambiente PORT
+    port = int(os.getenv("PORT", 10000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
