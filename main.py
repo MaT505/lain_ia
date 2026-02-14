@@ -96,7 +96,7 @@ async def gerar_audio_async(texto):
         print(f"SISTEMA: Iniciando EdgeTTS para: {texto[:30]}...")
         
         # Francisca é a voz padrão, mas você pode testar 'pt-BR-BrendaNeural'
-        VOICE = "pt-BR-BrendaNeural" 
+        VOICE = "pt-BR-FranciscaNeural" 
         
         # Adicionamos uma pequena pausa no início para garantir o processamento
         communicate = edge_tts.Communicate(texto, VOICE)
