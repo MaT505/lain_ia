@@ -93,7 +93,7 @@ async def gerar_audio_async(texto):
         print(f"SISTEMA: Gerando áudio via EdgeTTS para: {texto[:30]}...")
         
         # Voz feminina brasileira (Francisca é excelente para a Lain)
-        VOICE = "pt-BR-FranciscaNeural" 
+        VOICE = "pt-BR-BrendaNeural" 
         communicate = edge_tts.Communicate(texto, VOICE)
         
         audio_data = b""
