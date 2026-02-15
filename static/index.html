@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Copland OS Enterprise v1.0.5</title>
     <style>
         :root {
@@ -17,13 +17,14 @@
             color: var(--wired-blue);
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 20px;
-            overflow: hidden; /* Evita scroll na página inteira */
+            padding: 10px; /* Reduzido padding para celular */
+            overflow: hidden;
+            height: 100vh; /* Usa a altura total da tela */
             display: grid;
+            gap: 10px;
+            /* Layout Desktop */
             grid-template-columns: 1fr 350px;
             grid-template-rows: 1fr 100px;
-            gap: 15px;
-            height: 95vh;
         }
 
         body::before {
@@ -41,7 +42,7 @@
             flex-direction: column;
             position: relative;
             backdrop-filter: blur(4px);
-            overflow: hidden; /* Impede conteúdo de vazar */
+            overflow: hidden;
         }
 
         .window-header {
@@ -51,24 +52,49 @@
             font-weight: bold;
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 10px; /* Menor para celular */
             text-transform: uppercase;
-            flex-shrink: 0; /* Não deixa o header encolher */
+            flex-shrink: 0;
         }
 
-        /* --- CORREÇÃO DO CHAT --- */
-        #chat-window { grid-row: 1 / 2; grid-column: 1 / 2; }
-        
-        #chat-content {
-            flex-grow: 1; /* Ocupa espaço restante */
-            padding: 15px;
-            overflow-y: auto; /* ATIVAR SCROLL VERTICAL */
-            font-size: 14px;
-            line-height: 1.5;
-            display: flex;
-            flex-direction: column;
+        /* --- LAYOUT MOBILE (Media Query) --- */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto; /* Video em cima, Chat meio, Input baixo */
+                padding: 5px;
+            }
+
+            #video-window {
+                height: 150px; /* Menor no celular */
+                grid-column: 1 / 2;
+                grid-row: 1 / 2;
+            }
+
+            #chat-window {
+                grid-column: 1 / 2;
+                grid-row: 2 / 3;
+            }
+
+            #console-window {
+                display: none; /* Esconde o console no celular para ganhar espaço */
+            }
+
+            #input-window {
+                grid-column: 1 / 2;
+                grid-row: 3 / 4;
+            }
         }
-        /* ----------------------- */
+
+        /* --- ESTILOS DE CONTEÚDO --- */
+        #chat-window { grid-row: 1 / 2; grid-column: 1 / 2; }
+        #chat-content {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 13px; /* Menor fonte */
+            line-height: 1.4;
+        }
 
         #video-window { grid-column: 2 / 3; grid-row: 1 / 2; height: 300px; }
         .lain-portrait {
@@ -78,31 +104,28 @@
             opacity: 0.7;
         }
 
-        /* --- CORREÇÃO DO CONSOLE --- */
         #console-window { 
             grid-column: 2 / 3; 
             grid-row: 1 / 2; 
             margin-top: 315px; 
-            height: calc(100% - 315px); /* Altura fixa */
+            height: calc(100% - 315px);
         }
         
         #status-log {
-            padding: 10px;
-            font-size: 11px;
+            padding: 5px;
+            font-size: 10px;
             color: var(--wired-blue);
             opacity: 0.8;
-            overflow-y: auto; /* ATIVAR SCROLL VERTICAL */
+            overflow-y: auto;
             flex-grow: 1;
         }
-        /* ------------------------- */
 
         #input-window {
             grid-column: 1 / 3;
             grid-row: 2 / 3;
             display: flex;
             align-items: center;
-            padding: 0 15px;
-            flex-shrink: 0; /* Garante que o input não suma */
+            padding: 0 10px;
         }
 
         .prompt { margin-right: 10px; color: var(--wired-accent); font-weight: bold; }
@@ -113,15 +136,14 @@
             border: none;
             color: var(--wired-blue);
             font-family: inherit;
-            font-size: 16px;
+            font-size: 16px; /* Mantém 16px para não dar zoom automático no iOS */
             outline: none;
         }
 
-        .msg-user { color: #fff; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
-        .msg-lain { color: var(--wired-accent); margin-bottom: 20px; border-left: 2px solid var(--wired-accent); padding-left: 10px; text-shadow: 1px 1px 2px #000; }
+        .msg-user { color: #fff; margin-bottom: 8px; text-shadow: 1px 1px 2px #000; font-size: 12px; }
+        .msg-lain { color: var(--wired-accent); margin-bottom: 15px; border-left: 2px solid var(--wired-accent); padding-left: 8px; text-shadow: 1px 1px 2px #000; font-size: 12px; }
 
-        /* Estilo das barras de scroll */
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: var(--wired-dark); }
         ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
     </style>
@@ -131,7 +153,7 @@
     <div class="window" id="chat-window">
         <div class="window-header">
             <span>[ CHAT ]</span>
-            <span>COMMUNICATION CONSOLE v1.0.5</span>
+            <span>CONN v1.0.5</span>
         </div>
         <div id="chat-content">
             <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
@@ -154,11 +176,10 @@
 
     <div class="window" id="input-window">
         <span class="prompt">></span>
-        <input type="text" id="userInput" placeholder="Aperte Enter para conectar à Wired..." autocomplete="off">
+        <input type="text" id="userInput" placeholder="Conecte à Wired..." autocomplete="off">
     </div>
 
     <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
-
     <audio id="ambient-noise" loop crossorigin="anonymous">
         <source src="https://www.soundjay.com/ambient_c2026/sounds/train-interior-1.mp3" type="audio/mpeg">
     </audio>
@@ -174,33 +195,28 @@
         let source;
         let filter;
 
-        // --- CORREÇÃO JS: Auto Scroll ---
         function scrollParaFundo(elemento) {
             elemento.scrollTop = elemento.scrollHeight;
         }
 
         function inicializarAudioWired() {
             if (audioCtx) return;
-
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
                 source = audioCtx.createMediaElementSource(audioPlayer);
                 filter = audioCtx.createBiquadFilter();
                 filter.type = 'bandpass';
                 filter.frequency.value = 1100;
                 filter.Q.value = 1.5;
-
                 source.connect(filter);
                 filter.connect(audioCtx.destination);
-
                 ambientAudio.volume = 0.12; 
                 ambientAudio.play();
-                log.innerHTML += `<br>> Estática da Wired sincronizada.`;
-                scrollParaFundo(log);
-            } catch (e) {
-                console.error("Erro ao inicializar AudioContext:", e);
-            }
+                if(log) {
+                    log.innerHTML += `<br>> Estática da Wired sincronizada.`;
+                    scrollParaFundo(log);
+                }
+            } catch (e) { console.error(e); }
         }
 
         input.addEventListener('keypress', (e) => {
@@ -216,11 +232,11 @@
 
             input.value = '';
             chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
-            log.innerHTML += `<br>> Pacote enviado...`;
-            
-            // Força o scroll para baixo ao enviar
+            if(log) {
+                log.innerHTML += `<br>> Pacote enviado...`;
+                scrollParaFundo(log);
+            }
             scrollParaFundo(chat);
-            scrollParaFundo(log);
 
             try {
                 const res = await fetch('/chat', {
@@ -230,23 +246,23 @@
                 });
 
                 const data = await res.json();
-
                 chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                log.innerHTML += `<br>> Sincronizando voz...`;
-                
-                // Força o scroll para baixo ao receber resposta
+                if(log) {
+                    log.innerHTML += `<br>> Sincronizando voz...`;
+                    scrollParaFundo(log);
+                }
                 scrollParaFundo(chat);
-                scrollParaFundo(log);
 
                 if (data.audio) {
                     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
                     audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
-                    audioPlayer.play().catch(e => console.log("Erro ao tocar voz:", e));
+                    audioPlayer.play();
                 }
-
             } catch (err) {
-                log.innerHTML += `<br>> ERRO CRÍTICO NA WIRED.`;
-                scrollParaFundo(log);
+                if(log) {
+                    log.innerHTML += `<br>> ERRO CRÍTICO NA WIRED.`;
+                    scrollParaFundo(log);
+                }
                 console.error(err);
             }
         }
