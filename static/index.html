@@ -24,6 +24,7 @@
             padding: 15px;
             overflow: hidden;
             display: grid;
+            /* Layout Desktop */
             grid-template-columns: 1fr 350px;
             grid-template-rows: 1fr 80px;
             gap: 15px;
@@ -39,7 +40,7 @@
             z-index: -1;
         }
 
-        /* Efeito Matrix/Glitch Opcional */
+        /* Efeito Matrix/Glitch */
         .matrix-bg {
             animation: glitch-anim 0.2s infinite;
             filter: hue-rotate(90deg) brightness(1.5);
@@ -127,12 +128,32 @@
         .system-msg { color: #888; font-style: italic; font-size: 12px; margin: 5px 0; }
         .dir-list { color: #0f0; font-family: 'Courier', monospace; font-size: 13px; margin: 10px 0; }
 
+        /* ============================================================ */
+        /* --- RESPONSIVIDADE (CELULAR) - AQUI ESTÁ A MÁGICA! --- */
+        /* ============================================================ */
         @media (max-width: 768px) {
-            body { display: flex; flex-direction: column; padding: 10px; }
-            #right-panel { display: none; }
-            #chat-window { flex-grow: 1; }
-            #input-window { height: 70px; margin-top: 10px; }
+            body {
+                display: flex;
+                flex-direction: column;
+                padding: 10px;
+                /* Desativa o grid no celular para empilhar verticalmente */
+                grid-template-columns: none;
+                grid-template-rows: none;
+            }
+            /* Faz o chat ocupar a tela toda */
+            #chat-window {
+                flex-grow: 1;
+                width: 100%;
+            }
+
+            /* Ajusta a entrada de texto */
+            #input-window {
+                height: 70px;
+                margin-top: 10px;
+                width: 100%;
+            }
         }
+        /* ============================================================ */
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
@@ -291,8 +312,7 @@
             addLog(`Packet sent: ${btoa(msg).substring(0,8)}`);
             
             try {
-                // Simulação de resposta caso o endpoint /chat não exista no seu ambiente de teste
-                // No seu servidor real, mantenha o fetch abaixo.
+                // Simulação de resposta caso o endpoint /chat não exista
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
