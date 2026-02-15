@@ -11,15 +11,22 @@
             --wired-accent: #f0f;
         }
 
+        /* Reset e Base */
+        * { box-sizing: border-box; }
         body {
             background: url('https://media1.tenor.com/m/RvrJYDpAIVYAAAAC/ps1-lain-playstation.gif') no-repeat center center fixed;
             background-size: cover;
             color: var(--wired-blue);
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 10px;
-            overflow: hidden;
+            padding: 15px;
             height: 100vh;
+            overflow: hidden; /* Mantém o sistema dentro da tela */
+            display: grid;
+            gap: 15px;
+            /* Layout PC Padrão */
+            grid-template-columns: 1fr 350px;
+            grid-template-rows: 1fr 80px;
         }
 
         body::before {
@@ -30,12 +37,12 @@
             z-index: -1;
         }
 
+        /* Janelas Estilo OS */
         .window {
             border: 2px solid var(--wired-blue);
             background: rgba(0, 26, 36, 0.8);
             display: flex;
             flex-direction: column;
-            position: relative;
             backdrop-filter: blur(4px);
             overflow: hidden;
         }
@@ -43,64 +50,60 @@
         .window-header {
             background: var(--wired-blue);
             color: #000;
-            padding: 3px 10px;
+            padding: 4px 10px;
             font-weight: bold;
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: 11px;
             text-transform: uppercase;
             flex-shrink: 0;
         }
 
-        .window-content {
+        /* Chat */
+        #chat-window { grid-column: 1 / 2; grid-row: 1 / 2; }
+        #chat-content {
             flex-grow: 1;
-            padding: 10px;
+            padding: 15px;
             overflow-y: auto;
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        /* --- LAYOUT MOBILE (Telas < 768px) --- */
-        @media (max-width: 768px) {
-            .desktop-layout { display: none !important; }
-            .mobile-layout { 
-                display: grid !important; 
-                height: 100%;
-                grid-template-rows: 150px 1fr auto; /* Video, Chat, Input */
-                gap: 10px;
-            }
-            
-            #mobile-video { height: 100%; }
-            #mobile-chat-content { flex-grow: 1; overflow-y: auto; }
-            #mobile-input { height: 50px; flex-shrink: 0; }
+        /* Lateral (Vídeo e Console) */
+        .side-panel {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        /* --- LAYOUT DESKTOP (Telas >= 768px) --- */
-        @media (min-width: 769px) {
-            .mobile-layout { display: none !important; }
-            .desktop-layout { 
-                display: grid !important; 
-                height: 100%;
-                grid-template-columns: 1fr 350px;
-                grid-template-rows: 1fr 100px;
-                gap: 15px;
-            }
-            
-            #chat-window { grid-column: 1 / 2; grid-row: 1 / 2; }
-            #video-window { grid-column: 2 / 3; grid-row: 1 / 2; height: 300px; }
-            #console-window { grid-column: 2 / 3; grid-row: 1 / 2; margin-top: 315px; height: calc(100% - 315px); }
-            #input-window { grid-column: 1 / 3; grid-row: 2 / 3; }
-        }
-
+        #video-window { height: 250px; flex-shrink: 0; }
         .lain-portrait {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background: url('https://media1.tenor.com/m/qeyN2cl_GBsAAAAC/lain.gif') center/cover;
             opacity: 0.7;
         }
 
-        .prompt { margin-right: 10px; color: var(--wired-accent); font-weight: bold; }
+        #console-window { flex-grow: 1; }
+        #status-log {
+            padding: 10px;
+            font-size: 11px;
+            overflow-y: auto;
+            color: var(--wired-blue);
+            opacity: 0.8;
+        }
 
+        /* Input Inferior */
+        #input-window {
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .prompt { margin-right: 10px; color: var(--wired-accent); font-weight: bold; }
         input {
             flex-grow: 1;
             background: transparent;
@@ -111,24 +114,66 @@
             outline: none;
         }
 
-        .msg-user { color: #fff; margin-bottom: 8px; text-shadow: 1px 1px 2px #000; font-size: 12px; }
-        .msg-lain { color: var(--wired-accent); margin-bottom: 15px; border-left: 2px solid var(--wired-accent); padding-left: 8px; text-shadow: 1px 1px 2px #000; font-size: 12px; }
+        /* Mensagens */
+        .msg-user { color: #fff; margin-bottom: 12px; }
+        .msg-lain { 
+            color: var(--wired-accent); 
+            margin-bottom: 20px; 
+            border-left: 2px solid var(--wired-accent); 
+            padding-left: 10px; 
+        }
 
-        ::-webkit-scrollbar { width: 4px; }
+        /* =========================================
+           ADAPTAÇÃO PARA CELULAR (Mobile)
+           ========================================= */
+        @media (max-width: 800px) {
+            body {
+                grid-template-columns: 1fr;
+                grid-template-rows: 140px 1fr 60px; /* Video, Chat, Input */
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .side-panel {
+                grid-column: 1 / 2;
+                grid-row: 1 / 2;
+            }
+
+            #console-window { display: none; } /* Remove console no celular para dar espaço */
+            #video-window { height: 100%; }
+
+            #chat-window {
+                grid-column: 1 / 2;
+                grid-row: 2 / 3;
+            }
+
+            #input-window {
+                grid-column: 1 / 2;
+                grid-row: 3 / 4;
+            }
+
+            #chat-content { padding: 10px; font-size: 13px; }
+        }
+
+        /* Scrollbar Estilizada */
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: var(--wired-dark); }
         ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
     </style>
 </head>
 <body>
 
-    <div class="desktop-layout">
-        <div class="window" id="chat-window">
-            <div class="window-header"><span>[ CHAT ]</span><span>COMMUNICATION CONSOLE v1.0.5</span></div>
-            <div id="chat-content" class="window-content">
-                <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
-            </div>
+    <div class="window" id="chat-window">
+        <div class="window-header">
+            <span>[ CHAT ]</span>
+            <span>COMMUNICATION CONSOLE</span>
         </div>
+        <div id="chat-content">
+            <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
+        </div>
+    </div>
 
+    <div class="side-panel">
         <div class="window" id="video-window">
             <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
             <div class="lain-portrait"></div>
@@ -136,35 +181,16 @@
 
         <div class="window" id="console-window">
             <div class="window-header"><span>[ CONSOLE ]</span></div>
-            <div id="status-log" class="window-content">
-                > Conectando a 210.322.330.1...<br>
-                > Connected!<br>
-                > Memória carregada.
+            <div id="status-log">
+                > System: Online<br>
+                > Port: 8080 active
             </div>
-        </div>
-
-        <div class="window" id="input-window">
-            <span class="prompt">></span>
-            <input type="text" id="userInputDesktop" class="userInput" placeholder="Aperte Enter para conectar..." autocomplete="off">
         </div>
     </div>
 
-    <div class="mobile-layout">
-        <div class="window" id="mobile-video">
-            <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
-            <div class="lain-portrait"></div>
-        </div>
-
-        <div class="window" id="mobile-chat">
-            <div class="window-header"><span>[ CHAT ]</span></div>
-            <div id="mobile-chat-content" class="window-content">
-                <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
-            </div>
-        </div>
-
-        <div class="window" id="mobile-input">
-            <input type="text" id="userInputMobile" class="userInput" placeholder="Conecte..." autocomplete="off">
-        </div>
+    <div class="window" id="input-window">
+        <span class="prompt">></span>
+        <input type="text" id="userInput" placeholder="Digite aqui..." autocomplete="off">
     </div>
 
     <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
@@ -173,105 +199,63 @@
     </audio>
 
     <script>
-        // Seleciona os inputs de ambos os layouts
-        const inputDesktop = document.getElementById('userInputDesktop');
-        const inputMobile = document.getElementById('userInputMobile');
-        
-        // Seleciona os conteúdos de chat de ambos os layouts
-        const chatContentDesktop = document.getElementById('chat-content');
-        const chatContentMobile = document.getElementById('mobile-chat-content');
-        
+        const input = document.getElementById('userInput');
+        const chat = document.getElementById('chat-content');
+        const log = document.getElementById('status-log');
         const audioPlayer = document.getElementById('lain-voice');
         const ambientAudio = document.getElementById('ambient-noise');
-        const log = document.getElementById('status-log');
 
         let audioCtx;
-        let source;
-        let filter;
 
-        function scrollParaFundo(elemento) {
-            if(elemento) elemento.scrollTop = elemento.scrollHeight;
+        function scrollBottom(el) {
+            el.scrollTop = el.scrollHeight;
         }
 
-        function inicializarAudioWired() {
+        function initAudio() {
             if (audioCtx) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                source = audioCtx.createMediaElementSource(audioPlayer);
-                filter = audioCtx.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.value = 1100;
-                filter.Q.value = 1.5;
-                source.connect(filter);
-                filter.connect(audioCtx.destination);
-                ambientAudio.volume = 0.12; 
-                ambientAudio.play();
-                if(log) {
-                    log.innerHTML += `<br>> Estática da Wired sincronizada.`;
-                    scrollParaFundo(log);
-                }
-            } catch (e) { console.error(e); }
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            ambientAudio.volume = 0.1;
+            ambientAudio.play();
         }
 
-        // Adiciona event listener para ambos os inputs
-        [inputDesktop, inputMobile].forEach(input => {
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    inicializarAudioWired();
-                    enviar(input.value);
-                    input.value = '';
-                }
-            });
-        });
-
-        async function enviar(msg) {
-            if(!msg) return;
-
-            // Adiciona a mensagem em ambos os chats para garantir sincronia
-            const msgHtml = `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
-            chatContentDesktop.innerHTML += msgHtml;
-            chatContentMobile.innerHTML += msgHtml;
-
-            if(log) {
+        input.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const msg = input.value;
+                if (!msg) return;
+                
+                initAudio();
+                input.value = '';
+                
+                // Add User Message
+                chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
                 log.innerHTML += `<br>> Pacote enviado...`;
-                scrollParaFundo(log);
+                scrollBottom(chat);
+                scrollBottom(log);
+
+                try {
+                    const res = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ mensagem: msg })
+                    });
+                    const data = await res.json();
+
+                    // Add Lain Message
+                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
+                    log.innerHTML += `<br>> Resposta sincronizada.`;
+                    
+                    if (data.audio) {
+                        audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
+                        audioPlayer.play();
+                    }
+                    
+                    scrollBottom(chat);
+                    scrollBottom(log);
+                } catch (err) {
+                    log.innerHTML += `<br>> Erro de conexão.`;
+                }
             }
-            scrollParaFundo(chatContentDesktop);
-            scrollParaFundo(chatContentMobile);
-
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ mensagem: msg })
-                });
-
-                const data = await res.json();
-                const lainHtml = `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                
-                chatContentDesktop.innerHTML += lainHtml;
-                chatContentMobile.innerHTML += lainHtml;
-                
-                if(log) {
-                    log.innerHTML += `<br>> Sincronizando voz...`;
-                    scrollParaFundo(log);
-                }
-                scrollParaFundo(chatContentDesktop);
-                scrollParaFundo(chatContentMobile);
-
-                if (data.audio) {
-                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-                    audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
-                    audioPlayer.play();
-                }
-            } catch (err) {
-                if(log) {
-                    log.innerHTML += `<br>> ERRO CRÍTICO NA WIRED.`;
-                    scrollParaFundo(log);
-                }
-                console.error(err);
-            }
-        }
+        });
     </script>
 </body>
 </html>
