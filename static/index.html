@@ -24,9 +24,7 @@
             padding: 15px;
             overflow: hidden;
             display: grid;
-            /* Layout fixo: Coluna 1 expande, Coluna 2 tem 350px */
             grid-template-columns: 1fr 350px;
-            /* Linha 1 expande, Linha 2 (input) tem 80px */
             grid-template-rows: 1fr 80px;
             gap: 15px;
             height: 100vh;
@@ -41,6 +39,18 @@
             z-index: -1;
         }
 
+        /* Efeito Matrix/Glitch Opcional */
+        .matrix-bg {
+            animation: glitch-anim 0.2s infinite;
+            filter: hue-rotate(90deg) brightness(1.5);
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0); }
+            50% { transform: translate(2px, -2px); }
+            100% { transform: translate(-2px, 2px); }
+        }
+
         /* --- JANELAS --- */
         .window {
             border: var(--border-style);
@@ -48,7 +58,7 @@
             display: flex;
             flex-direction: column;
             backdrop-filter: blur(5px);
-            overflow: hidden; /* Mantém tudo reto */
+            overflow: hidden;
         }
 
         .window-header {
@@ -63,7 +73,6 @@
             flex-shrink: 0;
         }
 
-        /* Posicionamento Desktop */
         #chat-window { grid-column: 1 / 2; grid-row: 1 / 2; }
         
         #right-panel { 
@@ -85,7 +94,6 @@
             padding: 0 20px;
         }
 
-        /* Conteúdo Interno */
         #chat-content, #status-log {
             flex-grow: 1;
             padding: 15px;
@@ -103,7 +111,6 @@
             opacity: 0.6;
         }
 
-        /* Formatação de Mensagens */
         input {
             flex-grow: 1;
             background: transparent;
@@ -117,16 +124,12 @@
         .prompt { margin-right: 15px; color: var(--wired-accent); font-weight: bold; font-size: 20px; }
         .msg-user { color: #fff; margin-bottom: 12px; }
         .msg-lain { color: var(--wired-accent); margin-bottom: 15px; border-left: 3px solid var(--wired-accent); padding-left: 10px; }
-        .system-msg { color: #555; font-style: italic; font-size: 12px; }
+        .system-msg { color: #888; font-style: italic; font-size: 12px; margin: 5px 0; }
+        .dir-list { color: #0f0; font-family: 'Courier', monospace; font-size: 13px; margin: 10px 0; }
 
-        /* --- RESPONSIVIDADE (CELULAR) --- */
         @media (max-width: 768px) {
-            body {
-                display: flex;
-                flex-direction: column;
-                padding: 10px;
-            }
-            #right-panel { display: none; } /* Oculta console/video no mobile para focar no chat */
+            body { display: flex; flex-direction: column; padding: 10px; }
+            #right-panel { display: none; }
             #chat-window { flex-grow: 1; }
             #input-window { height: 70px; margin-top: 10px; }
         }
@@ -165,12 +168,12 @@
 
     <div class="window" id="input-window">
         <span class="prompt">>></span>
-        <input type="text" id="userInput" placeholder="Digite um comando ou mensagem..." autocomplete="off" autofocus>
+        <input type="text" id="userInput" placeholder="Digite um comando..." autocomplete="off" autofocus>
     </div>
 
     <audio id="lain-voice" style="display:none"></audio>
     <audio id="ambient-noise" loop>
-        <source src="https://www.soundjay.com/ambient_c2026/sounds/train-interior-1.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/ambient/sounds/train-interior-1.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -183,8 +186,9 @@
 
         function addLog(text, type = 'info') {
             const time = new Date().toLocaleTimeString().split(' ')[0];
+            const colors = { error: '#f00', success: '#0f0', warning: '#ff0' };
             const prefix = type === 'error' ? '!!!' : '>';
-            log.innerHTML += `<br><span style="color:${type === 'error' ? '#f00' : 'inherit'}">[${time}] ${prefix} ${text}</span>`;
+            log.innerHTML += `<br><span style="color:${colors[type] || 'inherit'}">[${time}] ${prefix} ${text}</span>`;
             log.scrollTop = log.scrollHeight;
         }
 
@@ -192,7 +196,7 @@
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 ambientAudio.volume = 0.15;
-                ambientAudio.play();
+                ambientAudio.play().catch(() => console.log("Audio waiting for interaction"));
                 addLog("Audio Engine Initialized", "success");
             }
         }
@@ -208,45 +212,87 @@
             const rawVal = input.value.trim();
             if (!rawVal) return;
             
-            const cmd = rawVal.toLowerCase();
+            const cmdParts = rawVal.split(' ');
+            const cmd = cmdParts[0].toLowerCase();
             input.value = '';
 
-            // Renderiza no chat
             chat.innerHTML += `<div class="msg-user"><b>User:</b> ${rawVal}</div>`;
             chat.scrollTop = chat.scrollHeight;
 
-            // Variedade de Comandos (Lógica Local)
-            if (cmd === '/clear') {
-                chat.innerHTML = '<div class="system-msg">Buffer limpo.</div>';
-                addLog("Chat buffer cleared.");
-                return;
-            }
+            // --- LÓGICA DE COMANDOS EXPANDIDA ---
+            
+            switch(cmd) {
+                case '/help':
+                    chat.innerHTML += `<div class="msg-lain"><b>Sistemas:</b> /status, /clear, /ping, /matrix, /exit<br><b>Arquivos:</b> /dir, /date, /whoami, /ver</div>`;
+                    break;
 
-            if (cmd === '/status') {
-                addLog("Checking nodes...");
-                setTimeout(() => addLog("Node 01: OK | Node 02: OK"), 500);
-                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Todos os sistemas estão sincronizados na Wired.</div>`;
-                return;
-            }
+                case '/clear':
+                    chat.innerHTML = '<div class="system-msg">Buffer de memória limpo.</div>';
+                    addLog("Chat buffer cleared.");
+                    break;
 
-            if (cmd === '/help') {
-                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Comandos: /status, /clear, /ping, /exit</div>`;
-                return;
-            }
+                case '/status':
+                    addLog("Scanning neural links...");
+                    setTimeout(() => {
+                        addLog("Sync Rate: 98.4%", "success");
+                        chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Todos os protocolos estão operando dentro da normalidade.</div>`;
+                    }, 600);
+                    break;
 
-            if (cmd === '/ping') {
-                addLog("Latency: " + Math.floor(Math.random() * 50) + "ms");
-                return;
-            }
+                case '/ping':
+                    const ms = Math.floor(Math.random() * 50) + 10;
+                    addLog(`Echo request to Wired: ${ms}ms`);
+                    chat.innerHTML += `<div class="system-msg">Resposta de 127.0.0.1: tempo=${ms}ms</div>`;
+                    break;
 
-            // Se não for comando, envia para a IA
-            enviarParaIA(rawVal);
+                case '/dir':
+                    addLog("Accessing local directory...");
+                    chat.innerHTML += `
+                        <div class="dir-list">
+                            05/24/1998  10:00 PM    &lt;DIR&gt;  Protocol7<br>
+                            05/24/1998  11:15 PM    4,096      psyche_chip.sys<br>
+                            05/24/1998  11:50 PM    1,024      readme.txt<br>
+                            02/15/2026  01:00 AM    &lt;DIR&gt;  Wired_Data
+                        </div>`;
+                    break;
+
+                case '/date':
+                    const d = new Date();
+                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Hoje é ${d.toLocaleDateString()} - O tempo é uma ilusão na Wired.</div>`;
+                    break;
+
+                case '/whoami':
+                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Você é um usuário acessando a camada 07. Eu sou Lain.</div>`;
+                    break;
+
+                case '/ver':
+                    chat.innerHTML += `<div class="system-msg">Copland OS [Version 1.0.5.2026]<br>(c) Marshall-Nei Systems. Todos os direitos reservados.</div>`;
+                    break;
+
+                case '/matrix':
+                    document.body.classList.toggle('matrix-bg');
+                    addLog("Visual override toggled", "warning");
+                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Você consegue ver os ruídos entre as camadas?</div>`;
+                    break;
+
+                case '/exit':
+                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Não há saída. A Wired é onipresente.</div>`;
+                    addLog("Access Denied: Connection persistent.", "error");
+                    break;
+
+                default:
+                    // Se não for comando interno, envia para a "IA"
+                    enviarParaIA(rawVal);
+            }
+            chat.scrollTop = chat.scrollHeight;
         }
 
         async function enviarParaIA(msg) {
-            addLog(`Sending packet: ${btoa(msg).substring(0,10)}...`);
+            addLog(`Packet sent: ${btoa(msg).substring(0,8)}`);
             
             try {
+                // Simulação de resposta caso o endpoint /chat não exista no seu ambiente de teste
+                // No seu servidor real, mantenha o fetch abaixo.
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -255,7 +301,7 @@
 
                 const data = await res.json();
                 chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                addLog("Response synchronized.");
+                addLog("Data synchronized.", "success");
 
                 if (data.audio) {
                     const audioPlayer = document.getElementById('lain-voice');
@@ -263,8 +309,8 @@
                     audioPlayer.play();
                 }
             } catch (err) {
-                addLog("CONNECTION_LOST: Re-routing...", "error");
-                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Parece que houve uma interferência na Wired... tente novamente.</div>`;
+                addLog("IO_ERROR: No route to host.", "error");
+                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Conexão instável... a Wired está mudando.</div>`;
             }
             chat.scrollTop = chat.scrollHeight;
         }
