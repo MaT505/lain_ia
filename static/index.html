@@ -18,7 +18,7 @@
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 20px;
-            overflow: hidden;
+            overflow: hidden; /* Evita scroll na página inteira */
             display: grid;
             grid-template-columns: 1fr 350px;
             grid-template-rows: 1fr 100px;
@@ -41,7 +41,7 @@
             flex-direction: column;
             position: relative;
             backdrop-filter: blur(4px);
-            overflow: hidden; /* Mantém o conteúdo dentro da borda */
+            overflow: hidden; /* Impede conteúdo de vazar */
         }
 
         .window-header {
@@ -53,20 +53,22 @@
             justify-content: space-between;
             font-size: 12px;
             text-transform: uppercase;
-            flex-shrink: 0;
+            flex-shrink: 0; /* Não deixa o header encolher */
         }
 
-        /* Ajuste do Chat */
+        /* --- CORREÇÃO DO CHAT --- */
         #chat-window { grid-row: 1 / 2; grid-column: 1 / 2; }
+        
         #chat-content {
-            flex-grow: 1;
+            flex-grow: 1; /* Ocupa espaço restante */
             padding: 15px;
-            overflow-y: auto; /* Habilita scroll */
+            overflow-y: auto; /* ATIVAR SCROLL VERTICAL */
             font-size: 14px;
             line-height: 1.5;
             display: flex;
             flex-direction: column;
         }
+        /* ----------------------- */
 
         #video-window { grid-column: 2 / 3; grid-row: 1 / 2; height: 300px; }
         .lain-portrait {
@@ -76,12 +78,12 @@
             opacity: 0.7;
         }
 
-        /* Ajuste do Console para scroll */
+        /* --- CORREÇÃO DO CONSOLE --- */
         #console-window { 
             grid-column: 2 / 3; 
             grid-row: 1 / 2; 
             margin-top: 315px; 
-            height: calc(100% - 315px); /* Ocupa o restante da coluna */
+            height: calc(100% - 315px); /* Altura fixa */
         }
         
         #status-log {
@@ -89,9 +91,10 @@
             font-size: 11px;
             color: var(--wired-blue);
             opacity: 0.8;
-            overflow-y: auto; /* Habilita scroll no log */
+            overflow-y: auto; /* ATIVAR SCROLL VERTICAL */
             flex-grow: 1;
         }
+        /* ------------------------- */
 
         #input-window {
             grid-column: 1 / 3;
@@ -99,6 +102,7 @@
             display: flex;
             align-items: center;
             padding: 0 15px;
+            flex-shrink: 0; /* Garante que o input não suma */
         }
 
         .prompt { margin-right: 10px; color: var(--wired-accent); font-weight: bold; }
@@ -116,8 +120,8 @@
         .msg-user { color: #fff; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
         .msg-lain { color: var(--wired-accent); margin-bottom: 20px; border-left: 2px solid var(--wired-accent); padding-left: 10px; text-shadow: 1px 1px 2px #000; }
 
-        /* Estilização da barra de scroll (opcional, para combinar com o tema) */
-        ::-webkit-scrollbar { width: 4px; }
+        /* Estilo das barras de scroll */
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--wired-dark); }
         ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
     </style>
@@ -170,9 +174,9 @@
         let source;
         let filter;
 
-        // Função para manter o scroll sempre no fundo
-        function autoScroll(element) {
-            element.scrollTop = element.scrollHeight;
+        // --- CORREÇÃO JS: Auto Scroll ---
+        function scrollParaFundo(elemento) {
+            elemento.scrollTop = elemento.scrollHeight;
         }
 
         function inicializarAudioWired() {
@@ -180,6 +184,7 @@
 
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
                 source = audioCtx.createMediaElementSource(audioPlayer);
                 filter = audioCtx.createBiquadFilter();
                 filter.type = 'bandpass';
@@ -192,7 +197,7 @@
                 ambientAudio.volume = 0.12; 
                 ambientAudio.play();
                 log.innerHTML += `<br>> Estática da Wired sincronizada.`;
-                autoScroll(log);
+                scrollParaFundo(log);
             } catch (e) {
                 console.error("Erro ao inicializar AudioContext:", e);
             }
@@ -212,8 +217,10 @@
             input.value = '';
             chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
             log.innerHTML += `<br>> Pacote enviado...`;
-            autoScroll(chat);
-            autoScroll(log);
+            
+            // Força o scroll para baixo ao enviar
+            scrollParaFundo(chat);
+            scrollParaFundo(log);
 
             try {
                 const res = await fetch('/chat', {
@@ -226,8 +233,10 @@
 
                 chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
                 log.innerHTML += `<br>> Sincronizando voz...`;
-                autoScroll(chat);
-                autoScroll(log);
+                
+                // Força o scroll para baixo ao receber resposta
+                scrollParaFundo(chat);
+                scrollParaFundo(log);
 
                 if (data.audio) {
                     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -237,7 +246,7 @@
 
             } catch (err) {
                 log.innerHTML += `<br>> ERRO CRÍTICO NA WIRED.`;
-                autoScroll(log);
+                scrollParaFundo(log);
                 console.error(err);
             }
         }
