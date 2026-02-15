@@ -17,14 +17,9 @@
             color: var(--wired-blue);
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 10px; /* Reduzido padding para celular */
+            padding: 10px;
             overflow: hidden;
-            height: 100vh; /* Usa a altura total da tela */
-            display: grid;
-            gap: 10px;
-            /* Layout Desktop */
-            grid-template-columns: 1fr 350px;
-            grid-template-rows: 1fr 100px;
+            height: 100vh;
         }
 
         body::before {
@@ -52,80 +47,56 @@
             font-weight: bold;
             display: flex;
             justify-content: space-between;
-            font-size: 10px; /* Menor para celular */
+            font-size: 10px;
             text-transform: uppercase;
             flex-shrink: 0;
         }
 
-        /* --- LAYOUT MOBILE (Media Query) --- */
-        @media (max-width: 768px) {
-            body {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr auto; /* Video em cima, Chat meio, Input baixo */
-                padding: 5px;
-            }
-
-            #video-window {
-                height: 150px; /* Menor no celular */
-                grid-column: 1 / 2;
-                grid-row: 1 / 2;
-            }
-
-            #chat-window {
-                grid-column: 1 / 2;
-                grid-row: 2 / 3;
-            }
-
-            #console-window {
-                display: none; /* Esconde o console no celular para ganhar espaço */
-            }
-
-            #input-window {
-                grid-column: 1 / 2;
-                grid-row: 3 / 4;
-            }
-        }
-
-        /* --- ESTILOS DE CONTEÚDO --- */
-        #chat-window { grid-row: 1 / 2; grid-column: 1 / 2; }
-        #chat-content {
+        .window-content {
             flex-grow: 1;
             padding: 10px;
             overflow-y: auto;
-            font-size: 13px; /* Menor fonte */
+            font-size: 13px;
             line-height: 1.4;
         }
 
-        #video-window { grid-column: 2 / 3; grid-row: 1 / 2; height: 300px; }
+        /* --- LAYOUT MOBILE (Telas < 768px) --- */
+        @media (max-width: 768px) {
+            .desktop-layout { display: none !important; }
+            .mobile-layout { 
+                display: grid !important; 
+                height: 100%;
+                grid-template-rows: 150px 1fr auto; /* Video, Chat, Input */
+                gap: 10px;
+            }
+            
+            #mobile-video { height: 100%; }
+            #mobile-chat-content { flex-grow: 1; overflow-y: auto; }
+            #mobile-input { height: 50px; flex-shrink: 0; }
+        }
+
+        /* --- LAYOUT DESKTOP (Telas >= 768px) --- */
+        @media (min-width: 769px) {
+            .mobile-layout { display: none !important; }
+            .desktop-layout { 
+                display: grid !important; 
+                height: 100%;
+                grid-template-columns: 1fr 350px;
+                grid-template-rows: 1fr 100px;
+                gap: 15px;
+            }
+            
+            #chat-window { grid-column: 1 / 2; grid-row: 1 / 2; }
+            #video-window { grid-column: 2 / 3; grid-row: 1 / 2; height: 300px; }
+            #console-window { grid-column: 2 / 3; grid-row: 1 / 2; margin-top: 315px; height: calc(100% - 315px); }
+            #input-window { grid-column: 1 / 3; grid-row: 2 / 3; }
+        }
+
         .lain-portrait {
             width: 100%;
             height: 100%;
             background: url('https://media1.tenor.com/m/qeyN2cl_GBsAAAAC/lain.gif') center/cover;
             opacity: 0.7;
-        }
-
-        #console-window { 
-            grid-column: 2 / 3; 
-            grid-row: 1 / 2; 
-            margin-top: 315px; 
-            height: calc(100% - 315px);
-        }
-        
-        #status-log {
-            padding: 5px;
-            font-size: 10px;
-            color: var(--wired-blue);
-            opacity: 0.8;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        #input-window {
-            grid-column: 1 / 3;
-            grid-row: 2 / 3;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
         }
 
         .prompt { margin-right: 10px; color: var(--wired-accent); font-weight: bold; }
@@ -136,7 +107,7 @@
             border: none;
             color: var(--wired-blue);
             font-family: inherit;
-            font-size: 16px; /* Mantém 16px para não dar zoom automático no iOS */
+            font-size: 16px;
             outline: none;
         }
 
@@ -150,33 +121,50 @@
 </head>
 <body>
 
-    <div class="window" id="chat-window">
-        <div class="window-header">
-            <span>[ CHAT ]</span>
-            <span>CONN v1.0.5</span>
+    <div class="desktop-layout">
+        <div class="window" id="chat-window">
+            <div class="window-header"><span>[ CHAT ]</span><span>COMMUNICATION CONSOLE v1.0.5</span></div>
+            <div id="chat-content" class="window-content">
+                <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
+            </div>
         </div>
-        <div id="chat-content">
-            <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
+
+        <div class="window" id="video-window">
+            <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
+            <div class="lain-portrait"></div>
+        </div>
+
+        <div class="window" id="console-window">
+            <div class="window-header"><span>[ CONSOLE ]</span></div>
+            <div id="status-log" class="window-content">
+                > Conectando a 210.322.330.1...<br>
+                > Connected!<br>
+                > Memória carregada.
+            </div>
+        </div>
+
+        <div class="window" id="input-window">
+            <span class="prompt">></span>
+            <input type="text" id="userInputDesktop" class="userInput" placeholder="Aperte Enter para conectar..." autocomplete="off">
         </div>
     </div>
 
-    <div class="window" id="video-window">
-        <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
-        <div class="lain-portrait"></div>
-    </div>
-
-    <div class="window" id="console-window">
-        <div class="window-header"><span>[ CONSOLE ]</span></div>
-        <div id="status-log">
-            > Conectando a 210.322.330.1...<br>
-            > Connected!<br>
-            > Memória carregada.
+    <div class="mobile-layout">
+        <div class="window" id="mobile-video">
+            <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
+            <div class="lain-portrait"></div>
         </div>
-    </div>
 
-    <div class="window" id="input-window">
-        <span class="prompt">></span>
-        <input type="text" id="userInput" placeholder="Conecte à Wired..." autocomplete="off">
+        <div class="window" id="mobile-chat">
+            <div class="window-header"><span>[ CHAT ]</span></div>
+            <div id="mobile-chat-content" class="window-content">
+                <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
+            </div>
+        </div>
+
+        <div class="window" id="mobile-input">
+            <input type="text" id="userInputMobile" class="userInput" placeholder="Conecte..." autocomplete="off">
+        </div>
     </div>
 
     <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
@@ -185,8 +173,14 @@
     </audio>
 
     <script>
-        const input = document.getElementById('userInput');
-        const chat = document.getElementById('chat-content');
+        // Seleciona os inputs de ambos os layouts
+        const inputDesktop = document.getElementById('userInputDesktop');
+        const inputMobile = document.getElementById('userInputMobile');
+        
+        // Seleciona os conteúdos de chat de ambos os layouts
+        const chatContentDesktop = document.getElementById('chat-content');
+        const chatContentMobile = document.getElementById('mobile-chat-content');
+        
         const audioPlayer = document.getElementById('lain-voice');
         const ambientAudio = document.getElementById('ambient-noise');
         const log = document.getElementById('status-log');
@@ -196,7 +190,7 @@
         let filter;
 
         function scrollParaFundo(elemento) {
-            elemento.scrollTop = elemento.scrollHeight;
+            if(elemento) elemento.scrollTop = elemento.scrollHeight;
         }
 
         function inicializarAudioWired() {
@@ -219,24 +213,31 @@
             } catch (e) { console.error(e); }
         }
 
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                inicializarAudioWired();
-                enviar();
-            }
+        // Adiciona event listener para ambos os inputs
+        [inputDesktop, inputMobile].forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    inicializarAudioWired();
+                    enviar(input.value);
+                    input.value = '';
+                }
+            });
         });
 
-        async function enviar() {
-            const msg = input.value;
+        async function enviar(msg) {
             if(!msg) return;
 
-            input.value = '';
-            chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
+            // Adiciona a mensagem em ambos os chats para garantir sincronia
+            const msgHtml = `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
+            chatContentDesktop.innerHTML += msgHtml;
+            chatContentMobile.innerHTML += msgHtml;
+
             if(log) {
                 log.innerHTML += `<br>> Pacote enviado...`;
                 scrollParaFundo(log);
             }
-            scrollParaFundo(chat);
+            scrollParaFundo(chatContentDesktop);
+            scrollParaFundo(chatContentMobile);
 
             try {
                 const res = await fetch('/chat', {
@@ -246,12 +247,17 @@
                 });
 
                 const data = await res.json();
-                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
+                const lainHtml = `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
+                
+                chatContentDesktop.innerHTML += lainHtml;
+                chatContentMobile.innerHTML += lainHtml;
+                
                 if(log) {
                     log.innerHTML += `<br>> Sincronizando voz...`;
                     scrollParaFundo(log);
                 }
-                scrollParaFundo(chat);
+                scrollParaFundo(chatContentDesktop);
+                scrollParaFundo(chatContentMobile);
 
                 if (data.audio) {
                     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
