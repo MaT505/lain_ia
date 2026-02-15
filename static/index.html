@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>Copland OS Enterprise v1.0.5</title>
     <style>
         :root {
@@ -11,22 +11,20 @@
             --wired-accent: #f0f;
         }
 
-        /* Reset e Base */
-        * { box-sizing: border-box; }
+        /* --- CONFIGURAÇÃO PADRÃO (PC) --- */
         body {
             background: url('https://media1.tenor.com/m/RvrJYDpAIVYAAAAC/ps1-lain-playstation.gif') no-repeat center center fixed;
             background-size: cover;
             color: var(--wired-blue);
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 15px;
-            height: 100vh;
-            overflow: hidden; /* Mantém o sistema dentro da tela */
+            padding: 20px;
+            overflow: hidden;
             display: grid;
-            gap: 15px;
-            /* Layout PC Padrão */
             grid-template-columns: 1fr 350px;
-            grid-template-rows: 1fr 80px;
+            grid-template-rows: 1fr 100px;
+            gap: 15px;
+            height: 95vh;
         }
 
         body::before {
@@ -37,12 +35,12 @@
             z-index: -1;
         }
 
-        /* Janelas Estilo OS */
         .window {
             border: 2px solid var(--wired-blue);
             background: rgba(0, 26, 36, 0.8);
             display: flex;
             flex-direction: column;
+            position: relative;
             backdrop-filter: blur(4px);
             overflow: hidden;
         }
@@ -50,60 +48,61 @@
         .window-header {
             background: var(--wired-blue);
             color: #000;
-            padding: 4px 10px;
+            padding: 3px 10px;
             font-weight: bold;
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 12px;
             text-transform: uppercase;
             flex-shrink: 0;
         }
 
-        /* Chat */
-        #chat-window { grid-column: 1 / 2; grid-row: 1 / 2; }
+        #chat-window { grid-row: 1 / 2; grid-column: 1 / 2; }
         #chat-content {
             flex-grow: 1;
             padding: 15px;
             overflow-y: auto;
             font-size: 14px;
             line-height: 1.5;
-        }
-
-        /* Lateral (Vídeo e Console) */
-        .side-panel {
-            grid-column: 2 / 3;
-            grid-row: 1 / 2;
             display: flex;
             flex-direction: column;
-            gap: 15px;
         }
 
-        #video-window { height: 250px; flex-shrink: 0; }
+        #video-window { grid-column: 2 / 3; grid-row: 1 / 2; height: 300px; }
         .lain-portrait {
-            width: 100%; height: 100%;
+            width: 100%;
+            height: 100%;
             background: url('https://media1.tenor.com/m/qeyN2cl_GBsAAAAC/lain.gif') center/cover;
             opacity: 0.7;
         }
 
-        #console-window { flex-grow: 1; }
+        #console-window { 
+            grid-column: 2 / 3; 
+            grid-row: 1 / 2; 
+            margin-top: 315px; 
+            height: calc(100% - 315px);
+        }
+        
         #status-log {
             padding: 10px;
             font-size: 11px;
-            overflow-y: auto;
             color: var(--wired-blue);
             opacity: 0.8;
+            overflow-y: auto;
+            flex-grow: 1;
         }
 
-        /* Input Inferior */
         #input-window {
             grid-column: 1 / 3;
             grid-row: 2 / 3;
             display: flex;
             align-items: center;
             padding: 0 15px;
+            flex-shrink: 0;
         }
 
         .prompt { margin-right: 10px; color: var(--wired-accent); font-weight: bold; }
+
         input {
             flex-grow: 1;
             background: transparent;
@@ -114,51 +113,59 @@
             outline: none;
         }
 
-        /* Mensagens */
-        .msg-user { color: #fff; margin-bottom: 12px; }
-        .msg-lain { 
-            color: var(--wired-accent); 
-            margin-bottom: 20px; 
-            border-left: 2px solid var(--wired-accent); 
-            padding-left: 10px; 
-        }
+        .msg-user { color: #fff; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
+        .msg-lain { color: var(--wired-accent); margin-bottom: 20px; border-left: 2px solid var(--wired-accent); padding-left: 10px; text-shadow: 1px 1px 2px #000; }
 
-        /* =========================================
-           ADAPTAÇÃO PARA CELULAR (Mobile)
-           ========================================= */
-        @media (max-width: 100px) {
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--wired-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
+
+        /* --- AJUSTES EXCLUSIVOS PARA CELULAR --- */
+        @media (max-width: 768px) {
             body {
-                grid-template-columns: 1fr;
-                grid-template-rows: 140px 1fr 60px; /* Video, Chat, Input */
-                padding: 8px;
-                gap: 8px;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                padding: 10px;
+                overflow: hidden; /* Mantém o app fixo */
             }
 
-            .side-panel {
-                grid-column: 1 / 2;
-                grid-row: 1 / 2;
+            #video-window {
+                height: 25vh; /* Aumenta o vídeo no celular */
+                width: 100%;
+                margin-bottom: 10px;
             }
-
-            #console-window { display: none; } /* Remove console no celular para dar espaço */
-            #video-window { height: 100%; }
 
             #chat-window {
-                grid-column: 1 / 2;
-                grid-row: 2 / 3;
+                flex: 1; /* Faz o chat ocupar todo o espaço central */
+                margin-bottom: 10px;
+                min-height: 0; /* Correção para o flexbox permitir scroll interno */
+            }
+
+            #chat-content {
+                font-size: 16px; /* Zoom no texto para leitura melhor */
+            }
+
+            #console-window {
+                display: none; /* Esconde o console no celular para dar espaço ao chat */
             }
 
             #input-window {
-                grid-column: 1 / 2;
-                grid-row: 3 / 4;
+                height: 70px;
+                width: 100%;
+                grid-row: unset;
+                grid-column: unset;
             }
 
-            #chat-content { padding: 10px; font-size: 13px; }
-        }
+            input {
+                font-size: 18px; /* Zoom no input */
+            }
 
-        /* Scrollbar Estilizada */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: var(--wired-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
+            .msg-lain, .msg-user {
+                margin-bottom: 15px;
+                font-size: 15px; /* Zoom leve nas mensagens */
+            }
+        }
     </style>
 </head>
 <body>
@@ -166,31 +173,30 @@
     <div class="window" id="chat-window">
         <div class="window-header">
             <span>[ CHAT ]</span>
-            <span>COMMUNICATION CONSOLE</span>
+            <span>COMMUNICATION CONSOLE v1.0.5</span>
         </div>
         <div id="chat-content">
             <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
         </div>
     </div>
 
-    <div class="side-panel">
-        <div class="window" id="video-window">
-            <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
-            <div class="lain-portrait"></div>
-        </div>
+    <div class="window" id="video-window">
+        <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
+        <div class="lain-portrait"></div>
+    </div>
 
-        <div class="window" id="console-window">
-            <div class="window-header"><span>[ CONSOLE ]</span></div>
-            <div id="status-log">
-                > System: Online<br>
-                > Port: 8080 active
-            </div>
+    <div class="window" id="console-window">
+        <div class="window-header"><span>[ CONSOLE ]</span></div>
+        <div id="status-log">
+            > Conectando a 210.322.330.1...<br>
+            > Connected!<br>
+            > Memória carregada.
         </div>
     </div>
 
     <div class="window" id="input-window">
         <span class="prompt">></span>
-        <input type="text" id="userInput" placeholder="Digite aqui..." autocomplete="off">
+        <input type="text" id="userInput" placeholder="Conectar à Wired..." autocomplete="off">
     </div>
 
     <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
@@ -201,61 +207,69 @@
     <script>
         const input = document.getElementById('userInput');
         const chat = document.getElementById('chat-content');
-        const log = document.getElementById('status-log');
         const audioPlayer = document.getElementById('lain-voice');
         const ambientAudio = document.getElementById('ambient-noise');
+        const log = document.getElementById('status-log');
 
         let audioCtx;
 
-        function scrollBottom(el) {
-            el.scrollTop = el.scrollHeight;
+        function scrollParaFundo(elemento) {
+            if (elemento) elemento.scrollTop = elemento.scrollHeight;
         }
 
-        function initAudio() {
+        function inicializarAudioWired() {
             if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            ambientAudio.volume = 0.1;
-            ambientAudio.play();
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaElementSource(audioPlayer);
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1100;
+                filter.Q.value = 1.5;
+                source.connect(filter);
+                filter.connect(audioCtx.destination);
+                ambientAudio.volume = 0.12; 
+                ambientAudio.play();
+                if(log) log.innerHTML += `<br>> Sincronia de áudio OK.`;
+            } catch (e) {}
         }
 
-        input.addEventListener('keypress', async (e) => {
+        input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const msg = input.value;
-                if (!msg) return;
-                
-                initAudio();
-                input.value = '';
-                
-                // Add User Message
-                chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
-                log.innerHTML += `<br>> Pacote enviado...`;
-                scrollBottom(chat);
-                scrollBottom(log);
-
-                try {
-                    const res = await fetch('/chat', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ mensagem: msg })
-                    });
-                    const data = await res.json();
-
-                    // Add Lain Message
-                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                    log.innerHTML += `<br>> Resposta sincronizada.`;
-                    
-                    if (data.audio) {
-                        audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
-                        audioPlayer.play();
-                    }
-                    
-                    scrollBottom(chat);
-                    scrollBottom(log);
-                } catch (err) {
-                    log.innerHTML += `<br>> Erro de conexão.`;
-                }
+                inicializarAudioWired();
+                enviar();
             }
         });
+
+        async function enviar() {
+            const msg = input.value;
+            if(!msg) return;
+
+            input.value = '';
+            chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
+            scrollParaFundo(chat);
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ mensagem: msg })
+                });
+
+                const data = await res.json();
+                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
+                
+                if (data.audio) {
+                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                    audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
+                    audioPlayer.play();
+                }
+
+                scrollParaFundo(chat);
+            } catch (err) {
+                console.error(err);
+            }
+        }
     </script>
 </body>
 </html>
