@@ -1,295 +1,298 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Copland OS Enterprise v1.0.5</title>
-    <style>
-        :root {
-            --wired-blue: #00d4ff;
-            --wired-dark: #001a24;
-            --wired-accent: #f0f;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Copland OS Enterprise v1.0.5</title>
 
-        /* --- LAYOUT BASE / DESKTOP (NÃO MUDAR) --- */
-        body {
-            background: url('https://media1.tenor.com/m/RvrJYDpAIVYAAAAC/ps1-lain-playstation.gif') no-repeat center center fixed;
-            background-size: cover;
-            color: var(--wired-blue);
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 20px;
-            overflow: hidden;
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            grid-template-rows: 1fr 100px;
-            gap: 15px;
-            height: 95vh;
-        }
+<style>
+:root {
+    --wired-blue: #00d4ff;
+    --wired-dark: #001a24;
+    --wired-accent: #ff00ff;
+}
 
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: -1;
-        }
+/* DESKTOP */
+body {
+    background: url('https://media1.tenor.com/m/RvrJYDpAIVYAAAAC/ps1-lain-playstation.gif') no-repeat center center fixed;
+    background-size: cover;
+    color: var(--wired-blue);
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 20px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    grid-template-rows: 1fr 100px;
+    gap: 15px;
+    height: 95vh;
+}
 
-        .window {
-            border: 2px solid var(--wired-blue);
-            background: rgba(0, 26, 36, 0.8);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            backdrop-filter: blur(4px);
-            overflow: hidden;
-        }
+body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: -1;
+}
 
-        .window-header {
-            background: var(--wired-blue);
-            color: #000;
-            padding: 3px 10px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            text-transform: uppercase;
-            flex-shrink: 0;
-        }
+.window {
+    border: 2px solid var(--wired-blue);
+    background: rgba(0, 26, 36, 0.85);
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(4px);
+    overflow: hidden;
+}
 
-        #chat-window { grid-row: 1 / 2; grid-column: 1 / 2; }
-        #chat-content {
-            flex-grow: 1;
-            padding: 15px;
-            overflow-y: auto;
-            font-size: 14px;
-            line-height: 1.5;
-            display: flex;
-            flex-direction: column;
-        }
+.window-header {
+    background: var(--wired-blue);
+    color: #000;
+    padding: 3px 10px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    text-transform: uppercase;
+}
 
-        #video-window { grid-column: 2 / 3; grid-row: 1 / 2; height: 300px; }
-        .lain-portrait {
-            width: 100%;
-            height: 100%;
-            background: url('https://media1.tenor.com/m/qeyN2cl_GBsAAAAC/lain.gif') center/cover;
-            opacity: 0.7;
-        }
+/* CHAT */
+#chat-window { grid-row: 1; grid-column: 1; }
 
-        #console-window { 
-            grid-column: 2 / 3; 
-            grid-row: 1 / 2; 
-            margin-top: 315px; 
-            height: calc(100% - 315px);
-        }
-        
-        #status-log {
-            padding: 10px;
-            font-size: 11px;
-            color: var(--wired-blue);
-            opacity: 0.8;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
+#chat-content {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+}
 
-        #input-window {
-            grid-column: 1 / 3;
-            grid-row: 2 / 3;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-        }
+.msg-user {
+    color: #fff;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px #000;
+}
 
-        .prompt { margin-right: 10px; color: var(--wired-accent); font-weight: bold; }
+.msg-lain {
+    color: var(--wired-accent);
+    margin-bottom: 20px;
+    border-left: 2px solid var(--wired-accent);
+    padding-left: 10px;
+    text-shadow: 1px 1px 2px #000;
+}
 
-        input {
-            flex-grow: 1;
-            background: transparent;
-            border: none;
-            color: var(--wired-blue);
-            font-family: inherit;
-            font-size: 16px;
-            outline: none;
-        }
+/* VIDEO */
+#video-window { grid-column: 2; grid-row: 1; height: 300px; }
 
-        .msg-user { color: #fff; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
-        .msg-lain { color: var(--wired-accent); margin-bottom: 20px; border-left: 2px solid var(--wired-accent); padding-left: 10px; text-shadow: 1px 1px 2px #000; }
+.lain-portrait {
+    width: 100%;
+    height: 100%;
+    background: url('https://media1.tenor.com/m/qeyN2cl_GBsAAAAC/lain.gif') center/cover;
+    opacity: 0.7;
+}
 
-        /* --- CELULAR (CORRIGIDO REAL) --- */
+/* CONSOLE */
+#console-window {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 315px;
+    height: calc(100% - 315px);
+}
+
+#status-log {
+    padding: 10px;
+    font-size: 11px;
+    opacity: 0.8;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* INPUT */
+#input-window {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+}
+
+.prompt {
+    margin-right: 10px;
+    color: var(--wired-accent);
+    font-weight: bold;
+}
+
+input {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    color: var(--wired-blue);
+    font-family: inherit;
+    font-size: 16px;
+    outline: none;
+}
+
+/* MOBILE */
 @media screen and (max-width: 768px) {
-
     body {
-        display: flex !important;
-        flex-direction: column !important;
-
-        /* RESET TOTAL DO GRID */
-        grid-template-columns: none !important;
-        grid-template-rows: none !important;
-
-        height: 100dvh !important;
-        padding: 6px !important;
-        gap: 6px !important;
-        overflow: hidden !important;
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        padding: 2px;
+        gap: 2px;
+        overflow: hidden;
     }
 
     #video-window {
-        order: 1;
-        height: 90px !important;
-        min-height: 90px !important;
-        width: 100% !important;
-        flex-shrink: 0 !important;
+        height: 60px;
+        width: 100%;
+        flex-shrink: 0;
     }
 
-    #chat-window {
-        order: 2;
-        flex: 1 !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
-    }
+    #chat-window { flex-grow: 1; }
 
     #chat-content {
-        flex: 1 !important;
-        overflow-y: auto !important;
-        font-size: 18px !important;
-        padding: 10px !important;
+        font-size: 22px;
+        padding: 5px;
     }
 
-    #console-window {
-        display: none !important;
-    }
+    #console-window { display: none; }
 
-    #input-window {
-        order: 3;
-        height: 60px !important;
-        min-height: 60px !important;
-        flex-shrink: 0 !important;
-    }
+    #input-window { height: 50px; }
 
-    input {
-        font-size: 18px !important;
-    }
+    input { font-size: 22px; }
+}
 
-    .msg-user,
-    .msg-lain {
-        font-size: 18px !important;
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--wired-dark); }
+::-webkit-scrollbar-thumb { background: var(--wired-blue); }
+
+</style>
+</head>
+
+<body>
+
+<div class="window" id="chat-window">
+    <div class="window-header">
+        <span>[ CHAT ]</span>
+        <span>COMM v1.0.5</span>
+    </div>
+    <div id="chat-content">
+        <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
+    </div>
+</div>
+
+<div class="window" id="video-window">
+    <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
+    <div class="lain-portrait"></div>
+</div>
+
+<div class="window" id="console-window">
+    <div class="window-header"><span>[ CONSOLE ]</span></div>
+    <div id="status-log">
+        > Conectando a 210.322.330.1...<br>
+        > Connected!<br>
+        > Memória carregada.
+    </div>
+</div>
+
+<div class="window" id="input-window">
+    <span class="prompt">></span>
+    <input type="text" id="userInput" placeholder="Conectar..." autocomplete="off">
+</div>
+
+<audio id="lain-voice" style="display:none"></audio>
+<audio id="ambient-noise" loop>
+    <source src="https://www.soundjay.com/ambient_c2026/sounds/train-interior-1.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const input = document.getElementById('userInput');
+const chat = document.getElementById('chat-content');
+const log = document.getElementById('status-log');
+const audioPlayer = document.getElementById('lain-voice');
+const ambientAudio = document.getElementById('ambient-noise');
+
+let audioCtx;
+
+function scrollBottom(el){
+    el.scrollTop = el.scrollHeight;
+}
+
+function initAudio(){
+    if(audioCtx) return;
+
+    try{
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaElementSource(audioPlayer);
+        const filter = audioCtx.createBiquadFilter();
+
+        filter.type = "bandpass";
+        filter.frequency.value = 1100;
+        filter.Q.value = 1.5;
+
+        source.connect(filter);
+        filter.connect(audioCtx.destination);
+
+        ambientAudio.volume = 0.12;
+        ambientAudio.play();
+
+        log.innerHTML += `<br>> Estática sincronizada.`;
+        scrollBottom(log);
+    } catch(e){
+        console.error(e);
     }
 }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: var(--wired-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
-    </style>
-</head>
-<body>
+input.addEventListener("keypress", e=>{
+    if(e.key==="Enter"){
+        initAudio();
+        enviar();
+    }
+});
 
-    <div class="window" id="chat-window">
-        <div class="window-header">
-            <span>[ CHAT ]</span>
-            <span>COMM v1.0.5</span>
-        </div>
-        <div id="chat-content">
-            <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
-        </div>
-    </div>
+async function enviar(){
+    const msg = input.value.trim();
+    if(!msg) return;
 
-    <div class="window" id="video-window">
-        <div class="window-header"><span>[ VIDEO ]</span><span>REC</span></div>
-        <div class="lain-portrait"></div>
-    </div>
+    input.value = "";
 
-    <div class="window" id="console-window">
-        <div class="window-header"><span>[ CONSOLE ]</span></div>
-        <div id="status-log">
-            > Conectando a 210.322.330.1...<br>
-            > Connected!<br>
-            > Memória carregada.
-        </div>
-    </div>
+    chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
+    log.innerHTML += `<br>> Enviando pacote...`;
+    scrollBottom(chat);
+    scrollBottom(log);
 
-    <div class="window" id="input-window">
-        <span class="prompt">></span>
-        <input type="text" id="userInput" placeholder="Conectar..." autocomplete="off">
-    </div>
-
-    <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
-    <audio id="ambient-noise" loop crossorigin="anonymous">
-        <source src="https://www.soundjay.com/ambient_c2026/sounds/train-interior-1.mp3" type="audio/mpeg">
-    </audio>
-
-    <script>
-        const input = document.getElementById('userInput');
-        const chat = document.getElementById('chat-content');
-        const log = document.getElementById('status-log');
-        const audioPlayer = document.getElementById('lain-voice');
-        const ambientAudio = document.getElementById('ambient-noise');
-
-        let audioCtx;
-
-        function scrollBottom(el) {
-            if (el) el.scrollTop = el.scrollHeight;
-        }
-
-        function initAudio() {
-            if (audioCtx) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioCtx.createMediaElementSource(audioPlayer);
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.value = 1100;
-                filter.Q.value = 1.5;
-                source.connect(filter);
-                filter.connect(audioCtx.destination);
-                ambientAudio.volume = 0.12; 
-                ambientAudio.play();
-                log.innerHTML += `<br>> Estática sincronizada.`;
-                scrollBottom(log);
-            } catch (e) {}
-        }
-
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                initAudio();
-                enviar();
-            }
+    try{
+        const res = await fetch("/chat",{
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body:JSON.stringify({ mensagem:msg })
         });
 
-        async function enviar() {
-            const msg = input.value;
-            if(!msg) return;
+        const data = await res.json();
 
-            input.value = '';
-            chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
-            log.innerHTML += `<br>> Enviando pacote...`;
-            
-            scrollBottom(chat);
-            scrollBottom(log);
+        chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
+        log.innerHTML += `<br>> Resposta recebida.`;
 
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ mensagem: msg })
-                });
-
-                const data = await res.json();
-                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                log.innerHTML += `<br>> Resposta recebida.`;
-                log.innerHTML += `<br>> Sincronizando voz...`;
-
-                if (data.audio) {
-                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-                    audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
-                    audioPlayer.play();
-                }
-
-                scrollBottom(chat);
-                scrollBottom(log);
-            } catch (err) {
-                log.innerHTML += `<br>> ERRO DE CONEXÃO.`;
-                scrollBottom(log);
+        if(data.audio){
+            if(audioCtx && audioCtx.state==="suspended"){
+                await audioCtx.resume();
             }
+            audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
+            audioPlayer.play();
         }
-    </script>
+
+        scrollBottom(chat);
+        scrollBottom(log);
+
+    } catch(err){
+        log.innerHTML += `<br>> ERRO DE CONEXÃO.`;
+        scrollBottom(log);
+    }
+}
+</script>
+
 </body>
 </html>
