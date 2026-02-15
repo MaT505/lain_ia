@@ -11,7 +11,7 @@
             --wired-accent: #f0f;
         }
 
-        /* --- LAYOUT BASE / DESKTOP --- */
+        /* --- LAYOUT BASE / DESKTOP (NÃO MUDAR) --- */
         body {
             background: url('https://media1.tenor.com/m/RvrJYDpAIVYAAAAC/ps1-lain-playstation.gif') no-repeat center center fixed;
             background-size: cover;
@@ -115,22 +115,25 @@
         .msg-user { color: #fff; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
         .msg-lain { color: var(--wired-accent); margin-bottom: 20px; border-left: 2px solid var(--wired-accent); padding-left: 10px; text-shadow: 1px 1px 2px #000; }
 
-        /* --- CELULAR (FORÇADO) --- */
+        /* --- CELULAR (ZOOM E LIMITE AJUSTADOS) --- */
         @media screen and (max-width: 768px) {
             body {
                 display: flex !important;
                 flex-direction: column !important;
                 height: 100dvh !important;
-                padding: 5px !important;
-                gap: 5px !important;
+                padding: 2px !important; /* Margem quase zero */
+                gap: 2px !important;
                 overflow: hidden !important;
             }
 
             #video-window {
-                height: 120px !important; /* Limite menor para o vídeo */
+                height: 60px !important; /* VÍDEO MÍNIMO */
                 width: 100% !important;
                 flex-shrink: 0 !important;
+                border: 1px solid var(--wired-blue) !important;
             }
+            
+            .window-header { font-size: 10px !important; padding: 1px 5px !important; }
 
             #chat-window {
                 flex-grow: 1 !important;
@@ -138,28 +141,31 @@
             }
 
             #chat-content {
-                font-size: 18px !important; /* ZOOM */
+                font-size: 24px !important; /* ZOOM AGRESSIVO */
+                line-height: 1.2 !important;
+                padding: 5px !important;
             }
 
             #console-window {
-                display: none !important; /* Console some no celular para priorizar chat */
+                display: none !important;
             }
 
             #input-window {
-                height: 60px !important;
+                height: 50px !important;
                 flex-shrink: 0 !important;
             }
 
             input {
-                font-size: 18px !important;
+                font-size: 22px !important; /* ZOOM AGRESSIVO */
             }
 
             .msg-lain, .msg-user {
-                font-size: 17px !important;
+                font-size: 22px !important; /* ZOOM AGRESSIVO */
+                margin-bottom: 10px !important;
             }
         }
 
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: var(--wired-dark); }
         ::-webkit-scrollbar-thumb { background: var(--wired-blue); }
     </style>
@@ -169,7 +175,7 @@
     <div class="window" id="chat-window">
         <div class="window-header">
             <span>[ CHAT ]</span>
-            <span>COMMUNICATION CONSOLE v1.0.5</span>
+            <span>COMM v1.0.5</span>
         </div>
         <div id="chat-content">
             <div class="msg-lain">Protocolo inicializado. A Wired espera por você...</div>
@@ -192,7 +198,7 @@
 
     <div class="window" id="input-window">
         <span class="prompt">></span>
-        <input type="text" id="userInput" placeholder="Digite para a Wired..." autocomplete="off">
+        <input type="text" id="userInput" placeholder="Conectar..." autocomplete="off">
     </div>
 
     <audio id="lain-voice" style="display:none" crossorigin="anonymous"></audio>
@@ -244,7 +250,7 @@
 
             input.value = '';
             chat.innerHTML += `<div class="msg-user"><b>Usuário:</b> ${msg}</div>`;
-            log.innerHTML += `<br>> Enviando pacote: ${msg.substring(0,10)}...`;
+            log.innerHTML += `<br>> Enviando pacote...`;
             
             scrollBottom(chat);
             scrollBottom(log);
