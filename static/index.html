@@ -126,44 +126,44 @@
                 display: flex;
                 flex-direction: column;
                 height: 100vh;
-                padding: 10px;
-                overflow: hidden; /* Mantém o app fixo */
+                padding: 5px; /* Quase sem margem */
+                gap: 5px;
             }
 
             #video-window {
-                height: 25vh; /* Aumenta o vídeo no celular */
+                height: 15vh; /* Vídeo bem pequeno */
                 width: 100%;
-                margin-bottom: 10px;
+                margin-bottom: 5px;
             }
 
             #chat-window {
-                flex: 1; /* Faz o chat ocupar todo o espaço central */
-                margin-bottom: 10px;
-                min-height: 0; /* Correção para o flexbox permitir scroll interno */
+                flex: 1; /* Ocupa tudo */
+                margin-bottom: 5px;
+                min-height: 0;
             }
 
             #chat-content {
-                font-size: 16px; /* Zoom no texto para leitura melhor */
+                font-size: 19px; /* ZOOM MÁXIMO NO TEXTO */
+                padding: 10px;
             }
 
             #console-window {
-                display: none; /* Esconde o console no celular para dar espaço ao chat */
+                display: none; /* SEM CONSOLE */
             }
 
             #input-window {
-                height: 70px;
+                height: 60px;
                 width: 100%;
-                grid-row: unset;
-                grid-column: unset;
             }
 
             input {
-                font-size: 18px; /* Zoom no input */
+                font-size: 20px; /* ZOOM MÁXIMO NO INPUT */
             }
 
             .msg-lain, .msg-user {
                 margin-bottom: 15px;
-                font-size: 15px; /* Zoom leve nas mensagens */
+                font-size: 19px; /* ZOOM MÁXIMO NAS MENSAGENS */
+                line-height: 1.3;
             }
         }
     </style>
