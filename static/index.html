@@ -121,27 +121,27 @@
     body {
         display: flex !important;
         flex-direction: column !important;
+
+        /* RESET TOTAL DO GRID */
+        grid-template-columns: none !important;
+        grid-template-rows: none !important;
+
         height: 100dvh !important;
-        max-height: 100dvh !important;
-        padding: 4px !important;
+        padding: 6px !important;
         gap: 6px !important;
         overflow: hidden !important;
     }
 
     #video-window {
-        height: 80px !important;
-        min-height: 80px !important;
-        max-height: 80px !important;
+        order: 1;
+        height: 90px !important;
+        min-height: 90px !important;
         width: 100% !important;
         flex-shrink: 0 !important;
     }
 
-    .window-header {
-        font-size: 11px !important;
-        padding: 2px 6px !important;
-    }
-
     #chat-window {
+        order: 2;
         flex: 1 !important;
         min-height: 0 !important;
         overflow: hidden !important;
@@ -149,12 +149,9 @@
 
     #chat-content {
         flex: 1 !important;
-        min-height: 0 !important;
-        max-height: 100% !important;
         overflow-y: auto !important;
-        font-size: 20px !important;
-        line-height: 1.4 !important;
-        padding: 8px !important;
+        font-size: 18px !important;
+        padding: 10px !important;
     }
 
     #console-window {
@@ -162,20 +159,19 @@
     }
 
     #input-window {
-        height: 55px !important;
-        min-height: 55px !important;
-        max-height: 55px !important;
+        order: 3;
+        height: 60px !important;
+        min-height: 60px !important;
         flex-shrink: 0 !important;
     }
 
     input {
-        font-size: 20px !important;
+        font-size: 18px !important;
     }
 
-    .msg-lain,
-    .msg-user {
-        font-size: 20px !important;
-        margin-bottom: 12px !important;
+    .msg-user,
+    .msg-lain {
+        font-size: 18px !important;
     }
 }
 
