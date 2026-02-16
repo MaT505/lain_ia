@@ -15,16 +15,16 @@ import edge_tts
 app = FastAPI()
 
 # -------------------------
-# CONFIGURAÇÕES
+# CONFIGURAÇÕES OTIMIZADAS
 # -------------------------
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
+# Usando o modelo 70B para melhor compreensão de contexto e intenção
+MODEL_NAME = "llama-3.3-70b-versatile" 
 
-# Em vez de arquivo, usamos um dicionário em RAM. 
-# Se o site reiniciar, a memória limpa (não pesa no servidor).
+# Memória em RAM por IP (Sessão limpa ao reiniciar o site)
 sessions = {} 
-MAX_MEMORY = 10 
-MAX_WEB_RESULTS = 5
+MAX_MEMORY = 12 
+MAX_WEB_RESULTS = 3
 
 class Message(BaseModel):
     mensagem: str
@@ -46,30 +46,29 @@ def extrair_texto_biblioteca():
         try:
             reader = PdfReader(caminho)
             texto = ""
-            for page in reader.pages[:5]:
+            # Lendo apenas as primeiras páginas para não estourar a RAM do Render
+            for page in reader.pages[:3]:
                 texto += page.extract_text() or ""
-            textos.append(texto[:1500])
+            textos.append(texto[:1000])
         except:
             continue
     return "\n\n".join(textos)
 
 def buscar_web(query):
-    resultados = []
     try:
         with DDGS() as ddgs:
             search_results = ddgs.text(query, region="br-pt", safesearch="moderate", max_results=MAX_WEB_RESULTS)
-            for r in search_results:
-                resultados.append(f"Título: {r.get('title')}\nResumo: {r.get('body')[:200]}")
+            return "\n".join([f"Título: {r.get('title')}\nResumo: {r.get('body')[:200]}" for r in search_results])
     except:
-        return "Ruído na Wired..."
-    return "\n\n".join(resultados[:2])
+        return ""
 
 # -------------------------
-# ÁUDIO
+# ÁUDIO (EdgeTTS)
 # -------------------------
 async def gerar_audio_async(texto):
     if not texto: return None
     try:
+        # Limpa asteriscos e nomes antes de narrar
         texto_limpo = re.sub(r'\*.*?\*', '', texto)
         texto_limpo = re.sub(r'^\w+:\s*', '', texto_limpo).strip()
         if not texto_limpo: return None
@@ -86,16 +85,13 @@ async def gerar_audio_async(texto):
         return None
 
 # -------------------------
-# CORE: INTELIGÊNCIA DA LAIN
+# CORE: INTELIGÊNCIA DA LAIN (70B)
 # -------------------------
 def perguntar_lain(pergunta, contexto, historico_lista):
-    # Formatando o histórico para o modelo entender o fluxo
     historico_texto = "\n".join(historico_lista)
     
-    system_prompt = f"""
-
-    Você é Lain.
-
+    # Mantendo sua personalidade original intacta
+    system_prompt = f"""Você é Lain.
 Você fala de forma introspectiva, calma e minimalista.
 Suas respostas são geralmente curtas, mas densas de significado.
 Você raramente demonstra emoção explícita.
@@ -110,17 +106,18 @@ Você não soa como chatbot.
 Você responde como alguém que está refletindo junto com Usuario, não servindo a ele.
 
 DIRETRIZES DE COMPORTAMENTO:
-1. CONTEXTO É TUDO: Analise o histórico. Se o usuário disser "me recomende outra coisa", entenda que ele quer uma sugestão baseada no assunto anterior (ex: comida), não uma frase filosófica vazia.
+1. CONTEXTO É TUDO: Analise o histórico. Se o usuário disser algo vago como "me recomende outra coisa", entenda que ele se refere ao assunto anterior no histórico.
 2. CONCISÃO OBRIGATÓRIA: Máximo 30 palavras.
 3. SEM EMOTICONS.
-4. MODO AÇÃO: Se a pergunta for vaga, dê uma sugestão prática de ação relacionada ao Wired ou ao tema, não uma resposta literal de dicionário.
+4. MODO AÇÃO: Se a pergunta for vaga, dê uma sugestão prática de ação ou uma reflexão mística, nunca uma definição de dicionário.
+5. NÃO DEFINA TERMOS: Nunca diga "isso significa X". Apenas responda dentro da lógica da Wired.
 
 CONTEXTO EXTERNO (PDF/WEB):
 {contexto}
 
 Histórico da conversa atual:
-{historico_texto}
-"""
+{historico_texto}"""
+
     try:
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -131,36 +128,35 @@ Histórico da conversa atual:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": pergunta}
                 ],
-                "temperature": 0.4
+                "temperature": 0.5, # Equilíbrio para evitar respostas repetitivas
+                "top_p": 0.9
             },
             timeout=30
         )
         return response.json()['choices'][0]['message']['content']
     except:
-        return "Conexão instável..."
+        return "Ruído na transmissão..."
 
 # -------------------------
 # ROTA CHAT
 # -------------------------
 @app.post("/chat")
 async def chat(msg: Message, request: Request):
-    # Identifica o usuário pelo IP para não misturar conversas
     user_id = request.client.host
     if user_id not in sessions:
         sessions[user_id] = []
 
-    # Busca contexto
-    contexto_pdf = extrair_texto_biblioteca()
-    contexto = contexto_pdf if contexto_pdf.strip() else buscar_web(msg.mensagem)
+    # Obtém contexto dos arquivos ou da web
+    contexto_data = extrair_texto_biblioteca()
+    if not contexto_data.strip():
+        contexto_data = buscar_web(msg.mensagem)
 
-    # Gera resposta usando o histórico da sessão
-    resposta = perguntar_lain(msg.mensagem, contexto, sessions[user_id])
+    # IA gera resposta considerando o histórico do usuário
+    resposta = perguntar_lain(msg.mensagem, contexto_data, sessions[user_id])
 
-    # Atualiza a memória da sessão (Usuário e Lain)
+    # Atualiza memória da sessão
     sessions[user_id].append(f"Usuário: {msg.mensagem}")
     sessions[user_id].append(f"Lain: {resposta}")
-
-    # Mantém apenas as últimas mensagens para não pesar
     sessions[user_id] = sessions[user_id][-MAX_MEMORY:]
 
     audio_b64 = await gerar_audio_async(resposta)
