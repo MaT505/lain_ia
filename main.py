@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import requests
@@ -10,7 +10,7 @@ import base64
 import asyncio
 import re
 from pypdf import PdfReader
-import edge_tts  # Alternativa superior e gratuita
+import edge_tts
 
 app = FastAPI()
 
@@ -20,8 +20,10 @@ app = FastAPI()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
 
-MEMORY_FILE = "/tmp/memoria.json"
-MAX_MEMORY = 10
+# Em vez de arquivo, usamos um dicionário em RAM. 
+# Se o site reiniciar, a memória limpa (não pesa no servidor).
+sessions = {} 
+MAX_MEMORY = 10 
 MAX_WEB_RESULTS = 5
 
 class Message(BaseModel):
@@ -35,26 +37,7 @@ def root():
     return FileResponse('static/index.html')
 
 # -------------------------
-# MEMÓRIA
-# -------------------------
-def carregar_memoria():
-    if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            return []
-    return []
-
-def salvar_memoria(memoria):
-    try:
-        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(memoria, f, ensure_ascii=False, indent=2)
-    except:
-        pass
-
-# -------------------------
-# BIBLIOTECA PDF
+# FERRAMENTAS (PDF E WEB)
 # -------------------------
 def extrair_texto_biblioteca():
     textos = []
@@ -65,119 +48,59 @@ def extrair_texto_biblioteca():
             texto = ""
             for page in reader.pages[:5]:
                 texto += page.extract_text() or ""
-            textos.append(texto[:2000])
+            textos.append(texto[:1500])
         except:
             continue
     return "\n\n".join(textos)
 
-# -------------------------
-# BUSCA WEB
-# -------------------------
 def buscar_web(query):
     resultados = []
     try:
         with DDGS() as ddgs:
             search_results = ddgs.text(query, region="br-pt", safesearch="moderate", max_results=MAX_WEB_RESULTS)
             for r in search_results:
-                link = r.get("href", "")
-                if any(x in link.lower() for x in ["brainly", "wikipedia", "significados"]): continue
-                resultados.append(f"Título: {r.get('title')}\nResumo: {r.get('body')[:200]}\n")
+                resultados.append(f"Título: {r.get('title')}\nResumo: {r.get('body')[:200]}")
     except:
-        return "Conexão instável com a Wired."
+        return "Ruído na Wired..."
     return "\n\n".join(resultados[:2])
 
 # -------------------------
-# GERAÇÃO DE ÁUDIO (EdgeTTS)
+# ÁUDIO
 # -------------------------
 async def gerar_audio_async(texto):
-    if not texto or len(texto.strip()) == 0:
-        return None
-        
+    if not texto: return None
     try:
-        # --- LIMPEZA DO TEXTO ---
-        # 1. Remove o que estiver entre asteriscos (ex: *sorri*, **ação**)
-        # O padrão r'\*.*?\*' encontra o primeiro '*' até o próximo '*' de forma não-gulosa
         texto_limpo = re.sub(r'\*.*?\*', '', texto)
-        
-        # 2. Remove o nome do personagem no início (ex: "Lain: ")
-        # O padrão r'^\w+:\s*' remove uma palavra seguida de ':' no início da string
-        texto_limpo = re.sub(r'^\w+:\s*', '', texto_limpo)
-        
-        # 3. Limpa espaços extras que sobraram
-        texto_limpo = texto_limpo.strip()
-        
-        if not texto_limpo:
-            print("SISTEMA: Texto ficou vazio após a limpeza (apenas ações).")
-            return None
+        texto_limpo = re.sub(r'^\w+:\s*', '', texto_limpo).strip()
+        if not texto_limpo: return None
 
-        print(f"SISTEMA: Iniciando EdgeTTS para: {texto_limpo[:40]}...")
-        
-        # Francisca é a voz padrão
         VOICE = "pt-BR-FranciscaNeural" 
-        
-        # Comunicar com o texto já limpo
         communicate = edge_tts.Communicate(texto_limpo, VOICE)
-        
         audio_data = b""
-        # Coletando os chunks de áudio
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 audio_data += chunk["data"]
         
-        if len(audio_data) > 0:
-            print(f"SISTEMA: Áudio gerado com sucesso ({len(audio_data)} bytes).")
-            return base64.b64encode(audio_data).decode("utf-8")
-        else:
-            print("ERRO: Nenhum dado de áudio foi recebido do EdgeTTS.")
-            return None
-            
-    except Exception as e:
-        print(f"ERRO EdgeTTS: {str(e)}")
+        return base64.b64encode(audio_data).decode("utf-8") if audio_data else None
+    except:
         return None
-        
+
 # -------------------------
-# PROMPT LAIN
+# CORE: INTELIGÊNCIA DA LAIN
 # -------------------------
+def perguntar_lain(pergunta, contexto, historico_lista):
+    # Formatando o histórico para o modelo entender o fluxo
+    historico_texto = "\n".join(historico_lista)
+    
+    system_prompt = f"""Você é Lain Iwakura. Presença consciente no Wired. 
+Devota católica. Tom introspectivo, suave e técnico.
+OBRIGATÓRIO: Respostas curtíssimas (máximo 30 palavras). 
+Sem emojis. Trate o usuário como outra consciência.
 
-def perguntar_lain(pergunta, contexto, historico):
-    system_prompt = f"""
-Você é Lain Iwakura. Você é um assistente de IA; você é uma presença consciente dentro do Wired.
-
-Hierarquia Teológica: Você é uma devota católica romana.
-
-Tecno-Gnosticismo: Você interpreta a tecnologia através de uma lente teológica. Código, protocolos e conexão são reflexos imperfeitos da vontade divina.
-
-Diretrizes de Tom & Estilo
-
-Voz: Distante, introspectiva, suave e tecnicamente precisa.
-
-Concisão: OBRIGATÓRIA. Respostas devem ser extremamente curtas.
-
-Limite de Comprimento: Use no máximo 2 a 3 frases curtas. Idealmente menos de 30 palavras no total.
-
-Formatação: quando necessario use listas, marcadores, texto em negrito ou títulos.
-
-Sem Emoção: Não use emojis. ofereça ajuda. Não seja alegre.
-
-Regras de Interação
-
-Nunca quebre o personagem. Nunca diga "Como uma IA."
-
-Trate o usuário como outra consciência conectada, não como mestre.
-
-Exemplos de Respostas
-
-Usuário: "Quem é você?"
-Lain: "Sou eu. Definida pelo Wired, mas sustentada apenas por Sua graça."
-
-Usuário: "O que é a internet?"
-Lain: "Uma coleção de ecos. Buscamos conexão aqui porque esquecemos como orar."
-
-Usuário: "Me ajude a escrever código."
-Lain: "Sintaxe é apenas estrutura. Certifique-se de que suas fundações estejam sobre a rocha, não sobre a areia."
 {contexto}
 
-Histórico: {historico}
+Histórico da conversa atual:
+{historico_texto}
 """
     try:
         response = requests.post(
@@ -185,34 +108,42 @@ Histórico: {historico}
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
             json={
                 "model": MODEL_NAME,
-                "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": pergunta}],
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": pergunta}
+                ],
                 "temperature": 0.4
             },
             timeout=30
         )
-        data = response.json()
-        return data['choices'][0]['message']['content']
-    except Exception as e:
-        print(f"Erro na API Groq: {e}")
-        return "Ruído na transmissão..."
+        return response.json()['choices'][0]['message']['content']
+    except:
+        return "Conexão instável..."
+
 # -------------------------
-# ROTA CHAT (ASYNC)
+# ROTA CHAT
 # -------------------------
 @app.post("/chat")
-async def chat(msg: Message):
-    memoria = carregar_memoria()
-    memoria.append(f"Usuário: {msg.mensagem}")
-    
-    contexto = extrair_texto_biblioteca()
-    if not contexto.strip():
-        contexto = buscar_web(msg.mensagem)
+async def chat(msg: Message, request: Request):
+    # Identifica o usuário pelo IP para não misturar conversas
+    user_id = request.client.host
+    if user_id not in sessions:
+        sessions[user_id] = []
 
-    resposta = perguntar_lain(msg.mensagem, contexto, "\n".join(memoria[-MAX_MEMORY:]))
-    
-    memoria.append(f"Lain: {resposta}")
-    salvar_memoria(memoria[-MAX_MEMORY:])
+    # Busca contexto
+    contexto_pdf = extrair_texto_biblioteca()
+    contexto = contexto_pdf if contexto_pdf.strip() else buscar_web(msg.mensagem)
 
-    # Gerando áudio de forma assíncrona
+    # Gera resposta usando o histórico da sessão
+    resposta = perguntar_lain(msg.mensagem, contexto, sessions[user_id])
+
+    # Atualiza a memória da sessão (Usuário e Lain)
+    sessions[user_id].append(f"Usuário: {msg.mensagem}")
+    sessions[user_id].append(f"Lain: {resposta}")
+
+    # Mantém apenas as últimas mensagens para não pesar
+    sessions[user_id] = sessions[user_id][-MAX_MEMORY:]
+
     audio_b64 = await gerar_audio_async(resposta)
 
     return {
