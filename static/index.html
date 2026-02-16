@@ -7,7 +7,6 @@
     <style>
         /* --- SISTEMA DE TEMAS (VARIÁVEIS) --- */
         :root {
-            /* PADRÃO: LAIN / WIRED */
             --wired-blue: #00d4ff;
             --wired-dark: #001a24;
             --wired-accent: #f0f;
@@ -16,22 +15,20 @@
             --border-style: 2px solid var(--wired-blue);
         }
 
-        /* TEMA: FALLOUT */
         body.theme-fallout {
             --wired-blue: #1aff1a;
             --wired-dark: #050a05;
             --wired-accent: #ffce21;
-            --bg-gif: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/v3p3CtSrNYNLa/giphy.gif');
-            --side-gif: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/fX8H6G6EzSxcSve9N/giphy.gif');
+            --bg-gif: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/v3p3CtSrNYNLa/giphy.gif');
+            --side-gif: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/fX8H6G6EzSxcSve9N/giphy.gif');
         }
 
-        /* TEMA: MATRIX */
         body.theme-matrix {
             --wired-blue: #00ff41;
             --wired-dark: #000;
             --wired-accent: #fff;
-            --bg-gif: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif');
-            --side-gif: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/A26pG2pY86f4Y/giphy.gif');
+            --bg-gif: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif');
+            --side-gif: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpbm56amZidm56amZidm56amZidm56amZidm56amZidm56amZidm56JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/A26pG2pY86f4Y/giphy.gif');
         }
 
         /* --- RESET E LAYOUT --- */
@@ -42,104 +39,57 @@
             background-size: cover;
             color: var(--wired-blue);
             font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 15px;
+            margin: 0; padding: 15px;
             overflow: hidden;
             display: grid;
             grid-template-columns: 1fr 350px;
             grid-template-rows: 1fr 80px;
             gap: 15px;
-            height: 100vh;
-            width: 100vw;
-            transition: all 0.3s ease;
+            height: 100vh; width: 100vw;
+            transition: all 0.5s ease;
         }
 
         body::before {
-            content: "";
-            position: absolute;
+            content: ""; position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: -1;
-        }
-
-        .matrix-bg {
-            animation: glitch-anim 0.2s infinite;
-            filter: hue-rotate(90deg) brightness(1.5);
-        }
-
-        @keyframes glitch-anim {
-            0% { transform: translate(0); }
-            50% { transform: translate(2px, -2px); }
-            100% { transform: translate(-2px, 2px); }
+            background: rgba(0, 0, 0, 0.7); z-index: -1;
         }
 
         .window {
             border: var(--border-style);
             background: rgba(0, 26, 36, 0.85);
-            display: flex;
-            flex-direction: column;
-            backdrop-filter: blur(5px);
-            overflow: hidden;
+            display: flex; flex-direction: column;
+            backdrop-filter: blur(5px); overflow: hidden;
         }
 
         .window-header {
             background: var(--wired-blue);
-            color: #000;
-            padding: 5px 10px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
+            color: #000; padding: 5px 10px;
+            font-weight: bold; display: flex;
+            justify-content: space-between; font-size: 12px;
             text-transform: uppercase;
-            flex-shrink: 0;
         }
 
         #chat-window { grid-column: 1 / 2; grid-row: 1 / 2; }
-        
-        #right-panel { 
-            grid-column: 2 / 3; 
-            grid-row: 1 / 2; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-        }
-
+        #right-panel { grid-column: 2 / 3; grid-row: 1 / 2; display: flex; flex-direction: column; gap: 15px; }
         #video-window { height: 250px; flex-shrink: 0; }
         #console-window { flex-grow: 1; }
+        #input-window { grid-column: 1 / 3; grid-row: 2 / 3; display: flex; align-items: center; padding: 0 20px; }
 
-        #input-window {
-            grid-column: 1 / 3;
-            grid-row: 2 / 3;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        #chat-content, #status-log {
-            flex-grow: 1;
-            padding: 15px;
-            overflow-y: auto;
-            word-break: break-all;
-        }
-
+        #chat-content, #status-log { flex-grow: 1; padding: 15px; overflow-y: auto; word-break: break-all; }
         #chat-content { font-size: 14px; line-height: 1.6; }
         #status-log { font-size: 11px; opacity: 0.9; background: rgba(0,0,0,0.3); }
 
         .lain-portrait {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background: var(--side-gif) center/cover;
             opacity: 0.6;
         }
 
         input {
-            flex-grow: 1;
-            background: transparent;
-            border: none;
-            color: var(--wired-blue);
-            font-family: inherit;
-            font-size: 18px;
-            outline: none;
+            flex-grow: 1; background: transparent; border: none;
+            color: var(--wired-blue); font-family: inherit;
+            font-size: 18px; outline: none;
         }
 
         .prompt { margin-right: 15px; color: var(--wired-accent); font-weight: bold; font-size: 20px; }
@@ -148,15 +98,14 @@
         .system-msg { color: #888; font-style: italic; font-size: 12px; margin: 5px 0; }
         .dir-list { color: #0f0; font-family: 'Courier', monospace; font-size: 13px; margin: 10px 0; }
 
+        .matrix-bg { animation: glitch-anim 0.2s infinite; filter: hue-rotate(90deg) brightness(1.5); }
+        @keyframes glitch-anim { 0% { transform: translate(0); } 50% { transform: translate(2px, -2px); } 100% { transform: translate(-2px, 2px); } }
+
         @media (max-width: 768px) {
-            body {
-                display: flex;
-                flex-direction: column;
-                padding: 10px;
-            }
+            body { display: flex; flex-direction: column; padding: 10px; }
             #chat-window { flex-grow: 1; width: 100%; }
-            #right-panel { display: none; } /* Esconde painel lateral no mobile p/ focar no chat */
-            #input-window { height: 70px; margin-top: 20px; width: 100%; }
+            #right-panel { display: none; }
+            #input-window { height: 70px; margin-top: 10px; width: 100%; }
         }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -166,10 +115,7 @@
 <body>
 
     <div class="window" id="chat-window">
-        <div class="window-header">
-            <span>[ WIRED_COMM_LINK ]</span>
-            <span>V1.0.5-ENTERPRISE</span>
-        </div>
+        <div class="window-header"><span>[ WIRED_COMM_LINK ]</span><span>V1.0.5-ENTERPRISE</span></div>
         <div id="chat-content">
             <div class="msg-lain"><b>Lain:</b> Present day... Present time... Hahaha!</div>
         </div>
@@ -180,20 +126,15 @@
             <div class="window-header"><span>[ LIVE_FEED ]</span><span>REC ●</span></div>
             <div class="lain-portrait"></div>
         </div>
-
         <div class="window" id="console-window">
             <div class="window-header"><span>[ SYSTEM_LOG ]</span></div>
-            <div id="status-log">
-                > Initializing Wired Protocol...<br>
-                > Layer 07: Connected.<br>
-                > Psyche chip: Stable.
-            </div>
+            <div id="status-log">> Initializing Wired Protocol...<br>> Layer 07: Connected.</div>
         </div>
     </div>
 
     <div class="window" id="input-window">
         <span class="prompt">>></span>
-        <input type="text" id="userInput" placeholder="Digite /theme fallout, /theme matrix ou /theme lain..." autocomplete="off" autofocus>
+        <input type="text" id="userInput" placeholder="Digite algo ou /help..." autocomplete="off" autofocus>
     </div>
 
     <audio id="lain-voice" style="display:none"></audio>
@@ -206,14 +147,12 @@
         const chat = document.getElementById('chat-content');
         const log = document.getElementById('status-log');
         const ambientAudio = document.getElementById('ambient-noise');
-
         let audioCtx;
 
         function addLog(text, type = 'info') {
             const time = new Date().toLocaleTimeString().split(' ')[0];
             const colors = { error: '#f00', success: '#0f0', warning: '#ff0' };
-            const prefix = type === 'error' ? '!!!' : '>';
-            log.innerHTML += `<br><span style="color:${colors[type] || 'inherit'}">[${time}] ${prefix} ${text}</span>`;
+            log.innerHTML += `<br><span style="color:${colors[type] || 'inherit'}">[${time}] > ${text}</span>`;
             log.scrollTop = log.scrollHeight;
         }
 
@@ -221,7 +160,7 @@
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 ambientAudio.volume = 0.15;
-                ambientAudio.play().catch(() => console.log("Audio waiting for interaction"));
+                ambientAudio.play().catch(() => {});
                 addLog("Audio Engine Initialized", "success");
             }
         }
@@ -233,7 +172,7 @@
             }
         });
 
-        async function processarComando() {
+        function processarComando() {
             const rawVal = input.value.trim();
             if (!rawVal) return;
             
@@ -242,78 +181,46 @@
             input.value = '';
 
             chat.innerHTML += `<div class="msg-user"><b>User:</b> ${rawVal}</div>`;
-            chat.scrollTop = chat.scrollHeight;
 
             switch(cmd) {
+                case '/help':
+                    chat.innerHTML += `<div class="msg-lain"><b>Sistemas:</b> /status, /clear, /ping, /matrix, /exit<br><b>Temas:</b> /theme [fallout | matrix | lain]<br><b>Arquivos:</b> /dir, /date, /whoami, /ver</div>`;
+                    break;
+                
                 case '/theme':
                     const tema = cmdParts[1] ? cmdParts[1].toLowerCase() : '';
                     document.body.classList.remove('theme-fallout', 'theme-matrix');
-                    
                     if (tema === 'fallout') {
                         document.body.classList.add('theme-fallout');
-                        addLog("Vault-Tec Firmware Loaded.", "success");
-                        chat.innerHTML += `<div class="msg-lain"><b>Sistema:</b> Protocolo Fallout ativado. Bom dia, Habitante do Refúgio.</div>`;
+                        addLog("Vault-Tec OS loaded.", "success");
                     } else if (tema === 'matrix') {
                         document.body.classList.add('theme-matrix');
-                        addLog("Matrix Override Enabled.", "warning");
-                        chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Você tomou a pílula vermelha...</div>`;
-                    } else if (tema === 'lain' || tema === 'reset') {
-                        addLog("Wired Protocol Restored.", "success");
-                        chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> De volta à Wired original.</div>`;
+                        addLog("Matrix sequence initiated.", "warning");
                     } else {
-                        chat.innerHTML += `<div class="system-msg">Uso: /theme [fallout | matrix | lain]</div>`;
+                        addLog("Theme reset to Wired.", "info");
                     }
                     break;
 
-                case '/help':
-    chat.innerHTML += `
-        <div class="msg-lain">
-            <b>Sistemas:</b> /status, /clear, /ping, /matrix, /exit<br>
-            <b>Temas:</b> /theme [fallout | matrix | lain]<br>
-            <b>Arquivos:</b> /dir, /date, /whoami, /ver
-        </div>`;
-    break;
-
                 case '/clear':
-                    chat.innerHTML = '<div class="system-msg">Buffer de memória limpo.</div>';
-                    addLog("Chat buffer cleared.");
+                    chat.innerHTML = '<div class="system-msg">Buffer limpo.</div>';
                     break;
 
                 case '/status':
-                    addLog("Scanning neural links...");
-                    setTimeout(() => {
-                        addLog("Sync Rate: 98.4%", "success");
-                        chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Protocolos operando normalmente.</div>`;
-                    }, 600);
+                    addLog("Scanning neural link...", "info");
+                    setTimeout(() => addLog("Sync: 98.4%", "success"), 500);
                     break;
 
                 case '/ping':
-                    const ms = Math.floor(Math.random() * 50) + 10;
-                    addLog(`Echo request to Wired: ${ms}ms`);
-                    chat.innerHTML += `<div class="system-msg">Resposta de 127.0.0.1: tempo=${ms}ms</div>`;
+                    addLog(`Pong! ${Math.floor(Math.random() * 50)}ms`, "success");
                     break;
 
                 case '/dir':
-                    addLog("Accessing local directory...");
-                    chat.innerHTML += `<div class="dir-list">05/24/1998 <DIR> Protocol7<br>05/24/1998 4,096 psyche_chip.sys<br>02/15/2026 <DIR> Wired_Data</div>`;
-                    break;
-
-                case '/date':
-                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Hoje é ${new Date().toLocaleDateString()}.</div>`;
-                    break;
-
-                case '/whoami':
-                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Você é um usuário da camada 07.</div>`;
+                    chat.innerHTML += `<div class="dir-list">05/24/1998 PROTOCOL_7<br>02/15/2026 WIRED_DATA</div>`;
                     break;
 
                 case '/matrix':
                     document.body.classList.toggle('matrix-bg');
-                    addLog("Visual override toggled", "warning");
-                    break;
-
-                case '/exit':
-                    chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Não há saída.</div>`;
-                    addLog("Access Denied.", "error");
+                    addLog("Visual glitch toggled.");
                     break;
 
                 default:
@@ -323,7 +230,7 @@
         }
 
         async function enviarParaIA(msg) {
-            addLog(`Packet sent: ${btoa(msg).substring(0,8)}`);
+            addLog("Sending packet...");
             try {
                 const res = await fetch('/chat', {
                     method: 'POST',
@@ -332,14 +239,9 @@
                 });
                 const data = await res.json();
                 chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> ${data.resposta}</div>`;
-                if (data.audio) {
-                    const audioPlayer = document.getElementById('lain-voice');
-                    audioPlayer.src = `data:audio/mp3;base64,${data.audio}`;
-                    audioPlayer.play();
-                }
-            } catch (err) {
-                addLog("IO_ERROR: Offline Mode.", "error");
-                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> A Wired está oscilando... (Servidor Offline)</div>`;
+            } catch (e) {
+                addLog("Server Offline.", "error");
+                chat.innerHTML += `<div class="msg-lain"><b>Lain:</b> Conexão perdida com a Wired.</div>`;
             }
             chat.scrollTop = chat.scrollHeight;
         }
