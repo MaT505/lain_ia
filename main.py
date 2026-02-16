@@ -115,8 +115,7 @@ DIRETRIZES DE COMPORTAMENTO:
 3. SEM EMOTICONS.
 4. MODO AÇÃO: Se a pergunta for vaga, dê uma sugestão prática de ação relacionada ao Wired ou ao tema, não uma resposta literal de dicionário.
 
-CONTEXTO EXTERNO (PDF/WEB)
-
+CONTEXTO EXTERNO (PDF/WEB):
 {contexto}
 
 Histórico da conversa atual:
