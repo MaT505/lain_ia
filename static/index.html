@@ -266,8 +266,13 @@
                     break;
 
                 case '/help':
-                    chat.innerHTML += `<div class="msg-lain"><b>Sistemas:</b> /theme [tema], /status, /clear, /ping, /matrix, /exit<br><b>Arquivos:</b> /dir, /date, /whoami, /ver</div>`;
-                    break;
+    chat.innerHTML += `
+        <div class="msg-lain">
+            <b>Sistemas:</b> /status, /clear, /ping, /matrix, /exit<br>
+            <b>Temas:</b> /theme [fallout | matrix | lain]<br>
+            <b>Arquivos:</b> /dir, /date, /whoami, /ver
+        </div>`;
+    break;
 
                 case '/clear':
                     chat.innerHTML = '<div class="system-msg">Buffer de memória limpo.</div>';
